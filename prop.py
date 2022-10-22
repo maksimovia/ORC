@@ -7,6 +7,10 @@ def t_p(T,P,fluid):
     H = prop('H','T', T+273.15, 'P', P*10**6, fluid)/1000
     P = P
     Q = prop('Q','T', T+273.15, 'P', P*10**6, fluid)
+    if Q>=1:
+        Q=1
+    elif Q<=0:
+        Q=0
     S = prop('S','T', T+273.15, 'P', P*10**6, fluid)/1000
     return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
 
@@ -14,22 +18,34 @@ def h_p(H,P,fluid):
     T = prop('T','H', H*1000, 'P', P*10**6, fluid)-273.15
     H = H
     P = P
-    Q = prop('Q','H', H*1000, 'P', P*10**6, fluid)-273.15
+    Q = prop('Q','H', H*1000, 'P', P*10**6, fluid)
+    if Q>=1:
+        Q=1
+    elif Q<=0:
+        Q=0
     S = prop('S','H', H*1000, 'P', P*10**6, fluid)/1000
     return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
 
 def p_q(P,Q,fluid):
-    T = prop('T','Q', Q, 'P', P*10**6, fluid)-273.15
-    H = prop('H','Q', Q, 'P', P*10**6, fluid)/1000
+    T = prop('T', 'P', P*10**6,'Q', Q, fluid)-273.15
+    H = prop('H', 'P', P*10**6,'Q', Q, fluid)/1000
     P = P
     Q = Q
-    S = prop('H','Q', Q, 'P', P*10**6, fluid)/1000
+    if Q>=1:
+        Q=1
+    elif Q<=0:
+        Q=0
+    S = prop('S', 'P', P*10**6,'Q', Q, fluid)/1000
     return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
 
 def p_s(P,S,fluid):
-    T = prop('T','S', S*1000, 'P', P*10**6, fluid)-273.15
-    H = prop('H','S', S*1000, 'P', P*10**6, fluid)/1000
+    T = prop('T','P', P*10**6,'S', S*1000,  fluid)-273.15
+    H = prop('H','P', P*10**6,'S', S*1000,  fluid)/1000
     P = P
-    Q = prop('Q','S', S*1000, 'P', P*10**6, fluid)
+    Q = prop('Q','P', P*10**6,'S', S*1000,  fluid)
+    if Q>=1:
+        Q=1
+    elif Q<=0:
+        Q=0
     S = S
     return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
