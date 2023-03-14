@@ -221,6 +221,28 @@ class regen:
         plt.ylabel('T, °C')
         plt.grid(True)
         return plt.plot(Q,t2,Q,t1)
+    
+    
+##########################################################
+    def cost(stream11,stream12,stream21,stream22,streams,blocks):
+        #исходные данные:
+        G1  = streams.at[stream11,"G"]
+        G2  = streams.at[stream21,"G"]
+        P1  = streams.at[stream11,"P"]
+        P2  = streams.at[stream21,"P"]
+        T11 = streams.at[stream11,"T"]
+        T12 = streams.at[stream12,"T"]
+        T21 = streams.at[stream21,"T"]
+        T22 = streams.at[stream22,"T"]
+        Q   = blocks.at["REGENERATOR","Q"]
+        fluid = 'REFPROP::R236ea'
+        
+        from TO-constr import Platetube
+        money = Platetube.calc(G1,G2,P1,P2,T11,T12,T21,T22,Q,fluid)
+        blocks.loc['REGENERATOR','COST'] = money
+##########################################################
+        
+        
 
 class turbine:
     def calc(stream1,stream2,Pout,KPDturb,fluid,streams,blocks):

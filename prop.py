@@ -38,6 +38,18 @@ def p_q(P,Q,fluid):
     S = prop('S', 'P', P*10**6,'Q', Q, fluid)/1000
     return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
 
+def t_q(T,Q,fluid):
+    T = T
+    H = prop('H', 'T', T+273.15,'Q', Q, fluid)/1000
+    P = prop('P', 'T', T+273.15,'Q', Q, fluid)/(10**6)
+    Q = Q
+    if Q>=1:
+        Q=1
+    elif Q<=0:
+        Q=0
+    S = prop('S', 'P', P*10**6,'Q', Q, fluid)/1000
+    return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
+
 def p_s(P,S,fluid):
     T = prop('T','P', P*10**6,'S', S*1000,  fluid)-273.15
     H = prop('H','P', P*10**6,'S', S*1000,  fluid)/1000
