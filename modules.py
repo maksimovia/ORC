@@ -224,7 +224,7 @@ class regen:
     
     
 ##########################################################
-    def cost(stream11,stream12,stream21,stream22,streams,blocks):
+    def cost(stream11,stream12,stream21,stream22,dP0, streams,blocks):
         #исходные данные:
         G1  = streams.at[stream11,"G"]
         G2  = streams.at[stream21,"G"]
@@ -237,9 +237,10 @@ class regen:
         Q   = blocks.at["REGENERATOR","Q"]
         fluid = 'REFPROP::R236ea'
         
-        from TO-constr import Platetube
-        money = Platetube.calc(G1,G2,P1,P2,T11,T12,T21,T22,Q,fluid)
+        from TO_constr import Platetube
+        money = Platetube.calc(G1,G2,P1,P2,T11,T12,T21,T22,Q, dP0, fluid)
         blocks.loc['REGENERATOR','COST'] = money
+        return money
 ##########################################################
         
         
