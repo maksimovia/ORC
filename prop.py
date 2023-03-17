@@ -66,3 +66,15 @@ def p_s(P,S,fluid):
         Q=0
     S = S
     return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
+
+def t_s(T,S,fluid):
+    T = T
+    H = prop('H','T', T+273.15,'S', S*1000,  fluid)/1000
+    P = prop('P','T', T+273.15,'S', S*1000,  fluid)/(10**6)
+    Q = prop('Q','T', T+273.15,'S', S*1000,  fluid)
+    if Q>=1:
+        Q=1
+    elif Q<=0:
+        Q=0
+    S = S
+    return {'T':T,'H':H,'P':P,'Q':Q,'S':S}

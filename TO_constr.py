@@ -5,8 +5,6 @@ import prop
 
 class Platetube:
     def calc(G1,G2,P1,P2,T11,T12,T21,T22,Q, dP0, fluid):
-        
-
         Dvnes=0.01
         DeltaTube=0.001
         Dvnut=Dvnes-2*DeltaTube
@@ -14,8 +12,8 @@ class Platetube:
         Hchan=0.25*Dvnes
         Deltaplate = 0.0005
         lambdaw = 20
-        row=7900
         etta=1
+        w2 = 3
 
         T1av = (T11+T12)/2
         T2av = (T21+T22)/2
@@ -32,17 +30,8 @@ class Platetube:
         dTmax = T11 - T22
         dTmin = T12 - T21
         dT = (dTmax - dTmin) / (n.log(dTmax / dTmin))
-
-
-
-        ############################################################################################
-        w2 = 3
-        
-        ############################################################################################
         for Z in range(1,10):
             for w1 in n.arange(5,50,1):
-                    
-
                 Re2 = w2*Dvnut/nu2
                 Nu2 = 0.021*Re2**0.8*Pr2**0.43
                 def func(x):
@@ -54,20 +43,17 @@ class Platetube:
                 f2=float(sol.x)
                 alpha2 = Nu2*lambda2/Dvnut
                 Re1 = w1*Dvnes/nu1
-
-
                 Nu1 = 0.195*Re1**0.65*Pr1**(-1/3)
-
-
                 f1 = 1.7*Re1**(-0.5)
                 alpha1 = Nu1*lambda1/Dvnes
                 KF = Q*1000/dT
 
-                F_vneshn = 4*(((2**0.5)*step/2)**2 - math.pi*(Dvnes**2)/4) + 2*Hchan* math.pi*Dvnes
-                F_vntr = math.pi*(Dvnes-2*DeltaTube)*2*(Hchan+Deltaplate)
-                F_trube = math.pi*Dvnes*2*(Hchan+Deltaplate)
+                F_vneshn = 4*(((2**0.5)*step/2)**2 - m.pi*(Dvnes**2)/4) + 2*Hchan* m.pi*Dvnes
+                F_vntr = m.pi*(Dvnes-2*DeltaTube)*2*(Hchan+Deltaplate)
+                F_trube = m.pi*Dvnes*2*(Hchan+Deltaplate)
                 koef1 = F_vntr/F_vneshn
                 koef2 = F_vneshn / F_trube
+                
                 def func(x):
                     Fvnes=x
                     a1 = 1/KF
@@ -79,8 +65,8 @@ class Platetube:
                 x=sol.x
                 Fvnes=float(x)
                 Nsumm = m.ceil(Fvnes/(F_vneshn)/Z)
+                
                 S2 = G2/(ro2*w2)
-
                 S1 = G1/(ro1*w1)
                 NH =  m.ceil(Nsumm*(n.pi*Dvnut**2)/(S2*4))
                 NW =  m.ceil(S1/(4*NH*Hchan*(step-(Dvnut+2*DeltaTube))))
@@ -96,34 +82,25 @@ class Platetube:
                 H=round(NH*((Hchan+Deltaplate)*2), 4)
                 L=round(NL*step*Z, 4)
                 dP1_y = f1*Z*L/Dvnes*ro1*w1_y**2/2
-                dP11_y = f1*Z*L/Dvnes*ro1*w1_y**2/2
                 dP2_y = f2*Z*H/Dvnut*ro2*w2_y**2/2
-
-                if round(dP1_y/dP0,1)== 1:     
+                
+                if round(dP1_y/(dP0*1000000),1)== 1:     
                     break;
             if round(H/W,1) == 1:
                 break;
-            
-            
         Ntube = NW*NL*Z
         Nplate = NH*2*Z
         Ltube = 2* (Hchan+Deltaplate)*NH
         Wplate = NW*step
         Lplate = NL*step
 
-        #Объем металла ТО
         V = n.pi*(Dvnes**2-Dvnut**2)/4*Ltube*Ntube + Lplate*Wplate*Deltaplate*Nplate
-        # Плотность стали 
         ro_stal = 7832 # кг/м3
+        stoimost_metal = 300 # руб за кг
 
         Massa =   ro_stal * V 
         Massa_tube  = n.pi*(Dvnes**2-Dvnut**2)/4*Ltube*Ntube * ro_stal
         Massa_plate = Lplate*Wplate*Deltaplate*Nplate * ro_stal
-        print ('Масса', round(Massa), 'кг')
-
-        #принимаем 
-        stoimost_metal = 300 # руб за кг
-
 
         Stoimost_tube = stoimost_metal*Massa_tube
         Stoimost_plate = stoimost_metal*Massa_plate
@@ -131,5 +108,4 @@ class Platetube:
         Svarka = 75*Nplate
         Korpys = 300000*V
         money = round(Stoimost_tube + Stoimost_plate + Svarka + Korpys)
-        print('konst+')
-        return money
+        return {'money':money,'dP1':dP1_y/1000000,'dP2':dP2_y/1000000}
