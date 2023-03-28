@@ -170,18 +170,18 @@ class Platetube:
             koef1 = F_vntr/F_vneshn
             koef2 = F_vneshn / F_trube
             
-            def func(x):
-                Fvnes=x
-                a1 = 1/KF
-                a2 = 1/(etta*alpha1*Fvnes)
-                a3 = ((1/2)*(n.log(Dvnes/Dvnut))*(Dvnes/(lambdaw*(Fvnes/koef2))))
-                a4 = 1/(alpha2*Fvnes*koef1)
-                return a1-a2-a3-a4
-            sol = root(func, 0.002)
-            x=sol.x
-            Fvnes=float(x)
-            
-            Fvnes = 
+#             def func(x):
+#                 Fvnes=x
+#                 a1 = 1/KF
+#                 a2 = 1/(etta*alpha1*Fvnes)
+#                 a3 = ((1/2)*(n.log(Dvnes/Dvnut))*(Dvnes/(lambdaw*(Fvnes/koef2))))
+#                 a4 = 1/(alpha2*Fvnes*koef1)
+#                 return a1-a2-a3-a4
+#             sol = root(func, 0.002)
+#             x=sol.x
+#             Fvnes=float(x)
+            K = 1/ (  (1/alpha1) + (DeltaTube/lambdaw) +(1/alpha2)         )
+            Fvnes = Q*1000/(   K *dT  )
             
             Nsumm = m.ceil(Fvnes/(F_vneshn)/Z)
             
