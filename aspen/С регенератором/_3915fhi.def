@@ -1,0 +1,11 @@
+SLAVE:
+INPUT: _3915fhi.inm
+MODNAME: apmain
+RUNID: _3915fhi
+NEW_RUNID: _3915fhi
+OLD_RUNID: _3915fhi
+PDF: _3915fhi.appdf
+USERNAME: MaximovIA
+XMOD: C:\Program Files (x86)\AspenTech\Aspen Plus V10.0\Engine\xeq\apmain
+SPONLY:
+DBCONN: _3915fhi

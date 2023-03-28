@@ -2,7 +2,9 @@ import prop
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import root
-
+from scipy.optimize import fsolve
+from scipy.optimize import anderson
+import scipy.optimize as optimize
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 12
@@ -21,9 +23,8 @@ class heater:
         step = (H11-H12)/s
         
         def G2sved(G2):
-            if G2>1000 or G2<5:
-                print(G2)
-                G2=400
+            if G2<100:
+                return 99999
             t1  = np.zeros(s+1)
             t2  = np.zeros(s+1)
             Q   = np.zeros(s+1)
@@ -46,10 +47,9 @@ class heater:
             H12 = h11
             H22 = h21
             DT=t1-t2
-            minDT=round(min(DT),5)
-            return minDT-minDTheater
-        sol = root(G2sved, 0.99*G2, method = 'broyden1')
-        G2 = float(sol.x)
+            minDT=min(DT)
+            return minDTheater-minDT
+        G2 = float(optimize.root(G2sved, G2-50, tol=10**-3).x)
         t1  = np.zeros(s+1)
         t2  = np.zeros(s+1)
         Q   = np.zeros(s+1)
@@ -73,8 +73,8 @@ class heater:
         H22 = h21
         DT=t1-t2
         minDT=round(min(DT),1)
-        if minDT < minDTheater:
-            print('!HEATER:minDT<dTmin=',minDT)
+#         if minDT < minDTheater:
+#             print('!HEATER:minDT<dTmin=',minDT)
         S12 = prop.h_p(H12,P1,fluid1)["S"]
         S22 = prop.h_p(H22,P2,fluid2)["S"]
         Q12 = prop.h_p(H12,P1,fluid1)["Q"]

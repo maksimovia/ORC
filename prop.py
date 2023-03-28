@@ -12,12 +12,13 @@ def t_p(T,P,fluid):
     elif Q<=0:
         Q=0
     S = prop('S','T', T+273.15, 'P', P*10**6, fluid)/1000
-    ro = prop('D','T', T+273.15, 'P', P*10**6, fluid)
-    nu = prop('V','T', T+273.15, 'P', P*10**6, fluid)/ro
-    Pr = prop('PRANDTL','T', T+273.15, 'P', P*10**6, fluid)
-    lamda = prop('L','T', T+273.15, 'P', P*10**6, fluid)
-    
-    return {'T':T,'H':H,'P':P,'Q':Q,'S':S,'ro':ro,'nu':nu,'Pr':Pr,'lamda':lamda}
+#     ro = prop('D','T', T+273.15, 'P', P*10**6, fluid)
+#     nu = prop('V','T', T+273.15, 'P', P*10**6, fluid)/ro
+#     Pr = prop('PRANDTL','T', T+273.15, 'P', P*10**6, fluid)
+#     lamda = prop('L','T', T+273.15, 'P', P*10**6, fluid)
+#     return {'T':T,'H':H,'P':P,'Q':Q,'S':S,'ro':ro,'nu':nu,'Pr':Pr,'lamda':lamda}
+
+    return {'T':T,'H':H,'P':P,'Q':Q,'S':S}
 
 def h_p(H,P,fluid):
     T = prop('T','H', H*1000, 'P', P*10**6, fluid)-273.15
