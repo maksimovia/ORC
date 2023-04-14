@@ -13,10 +13,8 @@ def sved(func, pribl, svedtol):
         else: Xr = Xc
     return Xc
 
-
 svedtol = 10**-6
 s = 20
-
 
 class heater:
     def calc(stream11,stream12,stream21,stream22,Toutmin,minDTheater,fluid1,fluid2,streams,blocks):
@@ -28,7 +26,6 @@ class heater:
         G2 = streams.at[stream21,"G"]
         T12 = Toutmin
         H12 = prop.t_p(T12,P1,fluid1)["H"]
-        s = 10
         step = (H11-H12)/s
         def G2sved(G2):
             t1  = np.zeros(s+1)
@@ -149,7 +146,6 @@ class regen:
         P2 = streams.at[stream21,"P"]-dPreg2
         G1 = streams.at[stream11,"G"]
         G2 = streams.at[stream21,"G"]
-        s = 10
         t1   = np.zeros(s+1)
         t2   = np.zeros(s+1)
         Q    = np.zeros(s+1)
@@ -268,7 +264,6 @@ class condenser:
         P2  = streams.at[stream21,"P"]
         H21 = streams.at[stream21,"H"]
         G2  = streams.at[stream21,"G"]
-        s = 10
         step = (H11-H12)/s
         def G2sved(G2):
             t1  = np.zeros(s+1)
@@ -374,7 +369,6 @@ class cooler:
         P2  = streams.at[stream21,"P"]
         H21 = streams.at[stream21,"H"]
         G2  = streams.at[stream21,"G"]
-        s = 10
         step = (H11-H12)/s
         def G2sved(G2):
             t1  = np.zeros(s+1)
