@@ -129,7 +129,7 @@ class Platetube:
         Deltaplate = 0.0005
         lambdaw = 20
         etta=1
-        w2 = 3
+        w2 = 1
 
         T1av = (T11+T12)/2
         T2av = (T21+T22)/2
@@ -147,7 +147,7 @@ class Platetube:
         dTmin = T12 - T21
         dT = (dTmax - dTmin) / (n.log(dTmax / dTmin))
         Z=4
-        for w1 in n.arange(1,50,1):
+        for w1 in n.arange(1,500,0.5):
             Re2 = w2*Dvnut/nu2
             Nu2 = 0.021*Re2**0.8*Pr2**0.43
             def func(x):
@@ -203,8 +203,8 @@ class Platetube:
             dP1_y = f1*Z*L/Dvnes*ro1*w1_y**2/2
             dP2_y = f2*Z*H/Dvnut*ro2*w2_y**2/2
             
-            if round(dP1_y/(dP0*1000000),1)== 1:     
-                break;
+            if dP1_y > dP0*1000000:
+                break
         Ntube = NW*NL*Z
         Nplate = NH*2*Z
         Ltube = 2* (Hchan+Deltaplate)*NH
@@ -213,8 +213,7 @@ class Platetube:
 
         V = n.pi*(Dvnes**2-Dvnut**2)/4*Ltube*Ntube + Lplate*Wplate*Deltaplate*Nplate
         ro_stal = 7832 # кг/м3
-        stoimost_metal = 300 # руб за кг
-
+        stoimost_metal = 3000 # руб за кг
         Massa =   ro_stal * V 
         Massa_tube  = n.pi*(Dvnes**2-Dvnut**2)/4*Ltube*Ntube * ro_stal
         Massa_plate = Lplate*Wplate*Deltaplate*Nplate * ro_stal
