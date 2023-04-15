@@ -4,6 +4,21 @@ import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 12
 
+svedtol = 10**-6
+s = 20
+
+def init(streams_in,blocks_in,fluid_in,gas_in,fluidcond_in):
+    global streams
+    streams = streams_in
+    global blocks
+    blocks = blocks_in
+    global fluid
+    fluid = fluid_in
+    global gas
+    gas = gas_in
+    global fluidcond
+    fluidcond = fluidcond_in
+
 def sved(func, pribl, svedtol):
     Xl = pribl[0]
     Xr = pribl[1]
@@ -13,11 +28,8 @@ def sved(func, pribl, svedtol):
         else: Xr = Xc
     return Xc
 
-svedtol = 10**-6
-s = 20
-
 class heater:
-    def calc(stream11,stream12,stream21,stream22,Toutmin,minDTheater,fluid1,fluid2,streams,blocks):
+    def calc(stream11,stream12,stream21,stream22,Toutmin,minDTheater):
         H11 = streams.at[stream11,"H"]
         H21 = streams.at[stream21,"H"]
         P1 = streams.at[stream11,"P"]
@@ -25,7 +37,7 @@ class heater:
         G1 = streams.at[stream11,"G"]
         G2 = streams.at[stream21,"G"]
         T12 = Toutmin
-        H12 = prop.t_p(T12,P1,fluid1)["H"]
+        H12 = prop.t_p(T12,P1,gas)["H"]
         step = (H11-H12)/s
         def G2sved(G2):
             t1  = np.zeros(s+1)
@@ -34,14 +46,14 @@ class heater:
             h11 = H11
             h21 = H21
             for i in range(s+1):
-                t1[i] = prop.h_p(h11,P1,fluid1)["T"]                
+                t1[i] = prop.h_p(h11,P1,gas)["T"]                
                 if i < s:
                     h12 = h11-step
                     dQ = G1*(h11-h12)
                     h11 = h12
                     Q[i+1] = Q[i]+dQ
             for i in range(s+1):
-                t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+                t2[s-i] = prop.h_p(h21,P2,fluid)["T"]
                 if i < s:
                     h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                     h21 = h22
@@ -59,14 +71,14 @@ class heater:
         h11 = H11
         h21 = H21
         for i in range(s+1):
-            t1[i] = prop.h_p(h11,P1,fluid1)["T"]
+            t1[i] = prop.h_p(h11,P1,gas)["T"]
             if i < s:
                 h12 = h11-step
                 dQ = G1*(h11-h12)
                 h11 = h12
                 Q[i+1] = Q[i]+dQ
         for i in range(s+1):
-            t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+            t2[s-i] = prop.h_p(h21,P2,fluid)["T"]
             if i < s:
                 h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                 h21 = h22
@@ -76,16 +88,14 @@ class heater:
         H22 = h21
         DT=t1-t2
         minDT=min(DT)
-        if round(minDT,1) < minDTheater:
-            print('!HEATER:minDT<dTmin=',minDT)
-        S12 = prop.h_p(H12,P1,fluid1)["S"]
-        S22 = prop.h_p(H22,P2,fluid2)["S"]
-        Q12 = prop.h_p(H12,P1,fluid1)["Q"]
-        Q22 = prop.h_p(H22,P2,fluid2)["Q"]
-        streams.loc[stream12, "T":"Q"] = [T12,P1,H12,S12,G1,Q12]
-        streams.loc[stream22, "T":"Q"] = [T22,P2,H22,S22,G2,Q22]
-        blocks.loc['HEATER','Q'] = Q[s]
-    def TQ(stream11,stream12,stream21,stream22,fluid1,fluid2,streams):
+        S12 = prop.h_p(H12,P1,gas)["S"]
+        S22 = prop.h_p(H22,P2,fluid)["S"]
+        Q12 = prop.h_p(H12,P1,gas)["Q"]
+        Q22 = prop.h_p(H22,P2,fluid)["Q"]
+        streams.loc[stream12, "T":"G"] = [T12,P1,H12,S12,Q12,G1]
+        streams.loc[stream22, "T":"G"] = [T22,P2,H22,S22,Q22,G2]
+        blocks.loc["HEATER","Q"] = Q[s]
+    def TQ(stream11,stream12,stream21,stream22):
         H11 = streams.at[stream11,"H"]
         H21 = streams.at[stream21,"H"]
         H12 = streams.at[stream12,"H"]
@@ -100,27 +110,27 @@ class heater:
         h11 = H11
         h21 = H21
         for i in range(s+1):
-            t1[i] = prop.h_p(h11,P1,fluid1)["T"]
+            t1[i] = prop.h_p(h11,P1,gas)["T"]
             if i < s:
                 h12 = h11-step
                 dQ = G1*(h11-h12)
                 h11 = h12
                 Q[i+1] = Q[i]+dQ
         for i in range(s+1):
-            t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+            t2[s-i] = prop.h_p(h21,P2,fluid)["T"]
             if i < s:
                 h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                 h21 = h22
         DT=t1-t2
         minDT=round(min(DT),1)
-        plt.title('HEATER: minDT={}°C'.format(round(minDT,1)))
-        plt.xlabel('Q, кВт')
-        plt.ylabel('T, °C')
+        plt.title("HEATER: minDT={}°C".format(round(minDT,1)))
+        plt.xlabel("Q, кВт")
+        plt.ylabel("T, °C")
         plt.grid(True)
         return plt.plot(Q,t2,Q,t1)
 
 class pump:
-    def calc(stream1,stream2,Pout,KPDpump,fluid,streams,blocks):
+    def calc(stream1,stream2,Pout,KPDpump):
         P1 = streams.at[stream1,"P"]
         H1 = streams.at[stream1,"H"]
         S1 = streams.at[stream1,"S"]
@@ -130,12 +140,12 @@ class pump:
         T2 = prop.h_p(H2,Pout,fluid)["T"]
         S2 = prop.h_p(H2,Pout,fluid)["S"]
         Q2 = prop.h_p(H2,Pout,fluid)["Q"]
-        streams.loc[stream2, "T":"Q"] = [T2, Pout, H2, S2, G,Q2]
+        streams.loc[stream2, "T":"G"] = [T2, Pout, H2, S2, Q2,G]
         N = G*(H2-H1)
-        blocks.loc['PUMP', 'N'] = N
+        blocks.loc["PUMP", "N"] = N
         
 class regen:
-    def calc(stream11,stream12,stream21,stream22,dTmin,dPreg1,dPreg2,fluid,streams,blocks):
+    def calc(stream11,stream12,stream21,stream22,dTmin,dPreg1,dPreg2):
         H11 = streams.at[stream11,"H"]
         H21 = streams.at[stream21,"H"]
         T11 = streams.at[stream11,"T"]
@@ -183,16 +193,14 @@ class regen:
             H22 = h21
             DT=t1-t2
             minDT=min(DT)
-            if round(minDT,1) < dTmin:
-                print('!REGEN:minDT<dTmin=',minDT)
             S22 = prop.h_p(H22,P2,fluid)["S"]
             S12 = prop.h_p(H12,P1,fluid)["S"]
             Q12 = prop.h_p(H12,P1,fluid)["Q"]
             Q22 = prop.h_p(H22,P2,fluid)["Q"]
-        streams.loc[stream12, "T":"Q"] = [T12,P1,H12,S12,G1,Q12]
-        streams.loc[stream22, "T":"Q"] = [T22,P2,H22,S22,G2,Q22]
-        blocks.loc['REGENERATOR','Q'] = Q[s]
-    def TQ(stream11,stream12,stream21,stream22,fluid,streams):
+        streams.loc[stream12, "T":"G"] = [T12,P1,H12,S12,Q12,G1]
+        streams.loc[stream22, "T":"G"] = [T22,P2,H22,S22,Q22,G2]
+        blocks.loc["REGENERATOR","Q"] = Q[s]
+    def TQ(stream11,stream12,stream21,stream22):
         H11 = streams.at[stream11,"H"]
         H21 = streams.at[stream21,"H"]
         H12 = streams.at[stream12,"H"]
@@ -220,12 +228,12 @@ class regen:
                 h21 = h22
         DT=t1-t2
         minDT=round(min(DT),1)
-        plt.title('REGEN: minDT={}°C'.format(round(minDT,1)))
-        plt.xlabel('Q, кВт')
-        plt.ylabel('T, °C')
+        plt.title("REGEN: minDT={}°C".format(round(minDT,1)))
+        plt.xlabel("Q, кВт")
+        plt.ylabel("T, °C")
         plt.grid(True)
         return plt.plot(Q,t2,Q,t1)
-    def constr(stream11,stream12,stream21,stream22,dPreg1,dPreg2, streams,blocks):
+    def constr(stream11,stream12,stream21,stream22,dPreg1,dPreg2):
         G1  = streams.at[stream11,"G"]
         G2  = streams.at[stream21,"G"]
         P1 = streams.at[stream11,"P"]-dPreg1
@@ -235,13 +243,13 @@ class regen:
         T21 = streams.at[stream21,"T"]
         T22 = streams.at[stream22,"T"]
         Q   = blocks.at["REGENERATOR","Q"]
-        fluid = 'REFPROP::R236ea'
+        fluid = "REFPROP::R236ea"
         from TO_constr import Platetube
         PTHE = Platetube.calc(G1,G2,P1,P2,T11,T12,T21,T22,Q, dPreg1, fluid)
-        return {'money':PTHE['money'],'dP1':PTHE['dP1'],'dP2':PTHE['dP2']}
+        return {"money":PTHE["money"],"dP1":PTHE["dP1"],"dP2":PTHE["dP2"]}
 
 class turbine:
-    def calc(stream1,stream2,Pout,KPDturb,fluid,streams,blocks):
+    def calc(stream1,stream2,Pout,KPDturb):
         P1 = streams.at[stream1,"P"]
         H1 = streams.at[stream1,"H"]
         S1 = streams.at[stream1,"S"]
@@ -251,16 +259,16 @@ class turbine:
         T2 = prop.h_p(H2,Pout,fluid)["T"]
         S2 = prop.h_p(H2,Pout,fluid)["S"]
         Q2 = prop.h_p(H2,Pout,fluid)["Q"]
-        streams.loc[stream2, "T":"Q"] = [T2, Pout, H2, S2, G,Q2]
+        streams.loc[stream2, "T":"G"] = [T2, Pout, H2, S2, Q2,G]
         N = G*(H1-H2)
-        blocks.loc['TURBINE', 'N'] = N
+        blocks.loc["TURBINE", "N"] = N
 
 class condenser:
-    def calc(stream11,stream12,stream21,stream22,minDTcond,fluid2,fluid1,streams,blocks):
+    def calc(stream11,stream12,stream21,stream22,minDTcond):
         P1  = streams.at[stream11,"P"]
         H11 = streams.at[stream11,"H"]
         G1  = streams.at[stream11,"G"]
-        H12 = prop.p_q(P1,0,fluid1)["H"]
+        H12 = prop.p_q(P1,0,fluid)["H"]
         P2  = streams.at[stream21,"P"]
         H21 = streams.at[stream21,"H"]
         G2  = streams.at[stream21,"G"]
@@ -272,14 +280,14 @@ class condenser:
             h11 = H11
             h21 = H21
             for i in range(s+1):
-                t1[i] = prop.h_p(h11,P1,fluid1)["T"]                
+                t1[i] = prop.h_p(h11,P1,fluid)["T"]                
                 if i < s:
                     h12 = h11-step
                     dQ = G1*(h11-h12)
                     h11 = h12
                     Q[i+1] = Q[i]+dQ
             for i in range(s+1):
-                t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+                t2[s-i] = prop.h_p(h21,P2,fluidcond)["T"]
                 if i < s:
                     h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                     h21 = h22
@@ -298,14 +306,14 @@ class condenser:
         h11 = H11
         h21 = H21
         for i in range(s+1):
-            t1[i] = prop.h_p(h11,P1,fluid1)["T"]
+            t1[i] = prop.h_p(h11,P1,fluid)["T"]
             if i < s:
                 h12 = h11-step
                 dQ = G1*(h11-h12)
                 h11 = h12
                 Q[i+1] = Q[i]+dQ
         for i in range(s+1):
-            t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+            t2[s-i] = prop.h_p(h21,P2,fluidcond)["T"]
             if i < s:
                 h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                 h21 = h22
@@ -315,17 +323,15 @@ class condenser:
         H22 = h21
         DT=t1-t2
         minDT=min(DT)
-        if round(minDT,1) < minDTcond:
-            print('!CONDENSER:minDT<dTmin=',minDT)
-        S12 = prop.h_p(H12,P1,fluid1)["S"]
-        S22 = prop.h_p(H22,P2,fluid2)["S"]
-        Q12 = prop.h_p(H12,P1,fluid1)["Q"]
-        Q22 = prop.h_p(H22,P2,fluid2)["Q"]
-        streams.loc[stream12, "T":"Q"] = [T12,P1,H12,S12,G1,Q12]
+        S12 = prop.h_p(H12,P1,fluid)["S"]
+        S22 = prop.h_p(H22,P2,fluidcond)["S"]
+        Q12 = prop.h_p(H12,P1,fluid)["Q"]
+        Q22 = prop.h_p(H22,P2,fluidcond)["Q"]
+        streams.loc[stream12, "T":"G"] = [T12,P1,H12,S12,Q12,G1]
         streams.loc[stream21, "G"] = G2
-        streams.loc[stream22, "T":"Q"] = [T22,P2,H22,S22,G2,Q22]
-        blocks.loc['CONDENSER', 'Q'] = Q[s]
-    def TQ(stream11,stream12,stream21,stream22,fluid2,fluid1,streams):
+        streams.loc[stream22, "T":"G"] = [T22,P2,H22,S22,Q22,G2]
+        blocks.loc["CONDENSER", "Q"] = Q[s]
+    def TQ(stream11,stream12,stream21,stream22):
         H11 = streams.at[stream11,"H"]
         H21 = streams.at[stream21,"H"]
         H12 = streams.at[stream12,"H"]
@@ -340,32 +346,32 @@ class condenser:
         h11 = H11
         h21 = H21
         for i in range(s+1):
-            t1[i] = prop.h_p(h11,P1,fluid1)["T"]
+            t1[i] = prop.h_p(h11,P1,fluid)["T"]
             if i < s:
                 h12 = h11-step
                 dQ = G1*(h11-h12)
                 h11 = h12
                 Q[i+1] = Q[i]+dQ
         for i in range(s+1):
-            t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+            t2[s-i] = prop.h_p(h21,P2,fluidcond)["T"]
             if i < s:
                 h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                 h21 = h22
         DT=t1-t2
         minDT=round(min(DT),1)
-        plt.title('CONDENSER: minDT={}°C'.format(round(minDT,1)))
-        plt.xlabel('Q, кВт')
-        plt.ylabel('T, °C')
+        plt.title("CONDENSER: minDT={}°C".format(round(minDT,1)))
+        plt.xlabel("Q, кВт")
+        plt.ylabel("T, °C")
         plt.grid(True)
         return plt.plot(Q,t2,Q,t1)
     
 class cooler:
-    def calc(stream11,stream12,stream21,stream22,minDTcond,T1out,fluid2,fluid1,streams,blocks):
+    def calc(stream11,stream12,stream21,stream22,minDTcond,T1out,fluid):
         P1  = streams.at[stream11,"P"]
         H11 = streams.at[stream11,"H"]
         G1  = streams.at[stream11,"G"]
         T12 = T1out
-        H12 = prop.t_p(T12,P1,fluid1)["H"]
+        H12 = prop.t_p(T12,P1,fluid)["H"]
         P2  = streams.at[stream21,"P"]
         H21 = streams.at[stream21,"H"]
         G2  = streams.at[stream21,"G"]
@@ -377,14 +383,14 @@ class cooler:
             h11 = H11
             h21 = H21
             for i in range(s+1):
-                t1[i] = prop.h_p(h11,P1,fluid1)["T"]                
+                t1[i] = prop.h_p(h11,P1,fluid)["T"]                
                 if i < s:
                     h12 = h11-step
                     dQ = G1*(h11-h12)
                     h11 = h12
                     Q[i+1] = Q[i]+dQ
             for i in range(s+1):
-                t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+                t2[s-i] = prop.h_p(h21,P2,fluidcond)["T"]
                 if i < s:
                     h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                     h21 = h22
@@ -403,14 +409,14 @@ class cooler:
         h11 = H11
         h21 = H21
         for i in range(s+1):
-            t1[i] = prop.h_p(h11,P1,fluid1)["T"]
+            t1[i] = prop.h_p(h11,P1,fluid)["T"]
             if i < s:
                 h12 = h11-step
                 dQ = G1*(h11-h12)
                 h11 = h12
                 Q[i+1] = Q[i]+dQ
         for i in range(s+1):
-            t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+            t2[s-i] = prop.h_p(h21,P2,fluidcond)["T"]
             if i < s:
                 h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                 h21 = h22
@@ -420,17 +426,15 @@ class cooler:
         H22 = h21
         DT=t1-t2
         minDT=min(DT)
-        if round(minDT,1) < minDTcond:
-            print('!COOLER:minDT<dTmin=',minDT)
-        S12 = prop.h_p(H12,P1,fluid1)["S"]
-        S22 = prop.h_p(H22,P2,fluid2)["S"]
-        Q12 = prop.h_p(H12,P1,fluid1)["Q"]
-        Q22 = prop.h_p(H22,P2,fluid2)["Q"]
-        streams.loc[stream12, "T":"Q"] = [T12,P1,H12,S12,G1,Q12]
+        S12 = prop.h_p(H12,P1,fluid)["S"]
+        S22 = prop.h_p(H22,P2,fluidcond)["S"]
+        Q12 = prop.h_p(H12,P1,fluid)["Q"]
+        Q22 = prop.h_p(H22,P2,fluidcond)["Q"]
+        streams.loc[stream12, "T":"G"] = [T12,P1,H12,S12,Q12,G1]
         streams.loc[stream21, "G"] = G2
-        streams.loc[stream22, "T":"Q"] = [T22,P2,H22,S22,G2,Q22]
-        blocks.loc['CONDENSER', 'Q'] = Q[s]
-    def TQ(stream11,stream12,stream21,stream22,fluid2,fluid1,streams):
+        streams.loc[stream22, "T":"G"] = [T22,P2,H22,S22,Q22,G2]
+        blocks.loc["CONDENSER", "Q"] = Q[s]
+    def TQ(stream11,stream12,stream21,stream22):
         H11 = streams.at[stream11,"H"]
         H21 = streams.at[stream21,"H"]
         H12 = streams.at[stream12,"H"]
@@ -445,21 +449,21 @@ class cooler:
         h11 = H11
         h21 = H21
         for i in range(s+1):
-            t1[i] = prop.h_p(h11,P1,fluid1)["T"]
+            t1[i] = prop.h_p(h11,P1,fluid)["T"]
             if i < s:
                 h12 = h11-step
                 dQ = G1*(h11-h12)
                 h11 = h12
                 Q[i+1] = Q[i]+dQ
         for i in range(s+1):
-            t2[s-i] = prop.h_p(h21,P2,fluid2)["T"]
+            t2[s-i] = prop.h_p(h21,P2,fluidcond)["T"]
             if i < s:
                 h22 = h21+(Q[s-i]-Q[s-i-1])/G2
                 h21 = h22
         DT=t1-t2
         minDT=round(min(DT),1)
-        plt.title('COOLER: minDT={}°C'.format(round(minDT,1)))
-        plt.xlabel('Q, кВт')
-        plt.ylabel('T, °C')
+        plt.title("COOLER: minDT={}°C".format(round(minDT,1)))
+        plt.xlabel("Q, кВт")
+        plt.ylabel("T, °C")
         plt.grid(True)
         return plt.plot(Q,t2,Q,t1)
