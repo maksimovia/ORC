@@ -13,8 +13,6 @@ def t_p(T,P,fluid):
         Q=0
     elif res.q>=1:
         Q=1
-    else:
-        print('t_p: двухфазная среда')
     return {'T':res.Output[0]-273.15, 'P':res.Output[1]/10**6, 'H':res.Output[2]/1000, 'S':res.Output[3]/1000, 'Q':Q}
 
 def h_p(H,P,fluid):
