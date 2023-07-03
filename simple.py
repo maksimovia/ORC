@@ -1,7 +1,6 @@
 import modules
 import prop
 import pandas as pd
-# import matplotlib.pyplot as plt
 
 # Таблицы с потоками и блоками:
 streams = pd.read_excel("data.xlsx", sheet_name="SIMPLE-streams", index_col=0)
