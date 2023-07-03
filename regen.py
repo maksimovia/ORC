@@ -1,4 +1,4 @@
-from modules import init, pump, regen, heater, turbine, condenser
+import modules
 import pandas as pd
 import prop
 
@@ -40,18 +40,18 @@ streams.loc["COND-PUMP", "T":"Q"] = list(prop.p_q(Pcond, 0, fluid).values())
 
 
 # Итеративный расчет для сведения баланса:
-init(streams, blocks, fluid, gas, fluidcond)
+modules.init(streams, blocks, fluid, gas, fluidcond)
 for i in range(9999):
 
-    pump.calc("COND-PUMP", "PUMP-REG", Ppump, KPDpump)
-    regen.calc("TURB-REG", "REG-COND", "PUMP-REG", "REG-HEAT", DTreg, dPreg1, dPreg2)
-    heater.calc("IN-HEAT", "HEAT-OUT", "REG-HEAT", "HEAT-TURB", Tout, DTheat)
-    turbine.calc("HEAT-TURB", "TURB-REG", Pcond + dPreg1, KPDturb)
-    regen.calc("TURB-REG", "REG-COND", "PUMP-REG", "REG-HEAT", DTreg, dPreg1, dPreg2)
-    condenser.calc("REG-COND", "COND-PUMP", "IN-COND", "COND-OUT", DTcond)
+    modules.pump.calc("COND-PUMP", "PUMP-REG", Ppump, KPDpump)
+    modules.regen.calc("TURB-REG", "REG-COND", "PUMP-REG", "REG-HEAT", DTreg, dPreg1, dPreg2)
+    modules.heater.calc("IN-HEAT", "HEAT-OUT", "REG-HEAT", "HEAT-TURB", Tout, DTheat)
+    modules.turbine.calc("HEAT-TURB", "TURB-REG", Pcond + dPreg1, KPDturb)
+    modules.regen.calc("TURB-REG", "REG-COND", "PUMP-REG", "REG-HEAT", DTreg, dPreg1, dPreg2)
+    modules.condenser.calc("REG-COND", "COND-PUMP", "IN-COND", "COND-OUT", DTcond)
 
-    Qbalance = (blocks.loc["HEATER", "Q"] + blocks.loc["PUMP", "N"] - blocks.loc["CONDENSER", "Q"] - blocks.loc[
-        "TURBINE", "N"]) / blocks.loc["HEATER", "Q"]
+    Qbalance = (blocks.loc["HEATER", "Q"] + blocks.loc["PUMP", "N"] - blocks.loc["CONDENSER", "Q"] - blocks.loc["TURBINE", "N"]) / blocks.loc["HEATER", "Q"]
+    print(Qbalance)
     if abs(Qbalance) < 10 ** -4:
         break
 
@@ -68,9 +68,9 @@ plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 12
 plt.figure(figsize=(16, 4))
 plt.subplot(1, 3, 1)
-heater.TQ("IN-HEAT", "HEAT-OUT", "REG-HEAT", "HEAT-TURB")
+modules.heater.TQ("IN-HEAT", "HEAT-OUT", "REG-HEAT", "HEAT-TURB")
 plt.subplot(1, 3, 2)
-regen.TQ("TURB-REG", "REG-COND", "PUMP-REG", "REG-HEAT")
+modules.regen.TQ("TURB-REG", "REG-COND", "PUMP-REG", "REG-HEAT")
 plt.subplot(1, 3, 3)
-condenser.TQ("REG-COND","COND-PUMP", "IN-COND", "COND-OUT")
+modules.condenser.TQ("REG-COND","COND-PUMP", "IN-COND", "COND-OUT")
 plt.show()

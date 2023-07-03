@@ -1,4 +1,4 @@
-from modules import init, pump, heater, turbine, condenser
+import modules
 import pandas as pd
 import prop
 
@@ -35,13 +35,13 @@ streams.loc["IN-COND", "T":"Q"] = list(prop.t_p(Tfluidcond, Pfluidcond, fluidcon
 streams.loc["COND-PUMP", "T":"Q"] = list(prop.p_q(Pcond, 0, fluid).values())
 
 # Итеративный расчет для сведения баланса:
-init(streams, blocks, fluid, gas, fluidcond)
+modules.init(streams, blocks, fluid, gas, fluidcond)
 for i in range(9999):
 
-    pump.calc('COND-PUMP', "PUMP-HEAT", Ppump, KPDpump)
-    heater.calc("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB", Tout, DTheat)
-    turbine.calc("HEAT-TURB", "TURB-COND", Pcond, KPDturb)
-    condenser.calc("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT", DTcond)
+    modules.pump.calc('COND-PUMP', "PUMP-HEAT", Ppump, KPDpump)
+    modules.heater.calc("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB", Tout, DTheat)
+    modules.turbine.calc("HEAT-TURB", "TURB-COND", Pcond, KPDturb)
+    modules.condenser.calc("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT", DTcond)
 
     Qbalance = (blocks.loc["HEATER", "Q"] + blocks.loc["PUMP", "N"] - blocks.loc["CONDENSER", "Q"] - blocks.loc[
         "TURBINE", "N"]) / blocks.loc["HEATER", "Q"]
@@ -63,7 +63,7 @@ plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 12
 plt.figure(figsize=(16, 4))
 plt.subplot(1, 2, 1)
-heater.TQ("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB")
+modules.heater.TQ("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB")
 plt.subplot(1, 2, 2)
-condenser.TQ("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT")
+modules.condenser.TQ("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT")
 plt.show()
