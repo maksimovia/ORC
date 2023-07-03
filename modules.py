@@ -32,14 +32,21 @@ def sved(func, pribl, svedtol):
 
 
 class heater:
-    def calc(stream11, stream12, stream21, stream22, Toutmin, minDTheater):
-        H11 = streams.at[stream11, "H"]
-        H21 = streams.at[stream21, "H"]
-        P1 = streams.at[stream11, "P"]
-        P2 = streams.at[stream21, "P"]
-        G1 = streams.at[stream11, "G"]
-        G2 = streams.at[stream21, "G"]
-        T12 = Toutmin
+    def __init__(self, stream11, stream12, stream21, stream22, Toutmin, minDTheater):
+        self.stream11 = stream11
+        self.stream12 = stream12
+        self.stream21 = stream21
+        self.stream22 = stream22
+        self.Toutmin = Toutmin
+        self.minDTheater = minDTheater
+    def calc(self):
+        H11 = streams.at[self.stream11, "H"]
+        H21 = streams.at[self.stream21, "H"]
+        P1 = streams.at[self.stream11, "P"]
+        P2 = streams.at[self.stream21, "P"]
+        G1 = streams.at[self.stream11, "G"]
+        G2 = streams.at[self.stream21, "G"]
+        T12 = self.Toutmin
         H12 = prop.t_p(T12, P1, gas)["H"]
         step = (H11 - H12) / s
 
@@ -67,7 +74,7 @@ class heater:
             H22 = h21
             DT = t1 - t2
             minDT = min(DT)
-            return minDTheater - minDT
+            return self.minDTheater - minDT
 
         G2 = sved(G2sved, [0, 9999], svedtol)
         t1 = np.zeros(s + 1)
@@ -97,8 +104,8 @@ class heater:
         S22 = prop.h_p(H22, P2, fluid)["S"]
         Q12 = prop.h_p(H12, P1, gas)["Q"]
         Q22 = prop.h_p(H22, P2, fluid)["Q"]
-        streams.loc[stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
-        streams.loc[stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
+        streams.loc[self.stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
+        streams.loc[self.stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
         blocks.loc["HEATER", "Q"] = Q[s]
 
     def TQ(stream11, stream12, stream21, stream22):
@@ -137,33 +144,47 @@ class heater:
 
 
 class pump:
-    def calc(stream1, stream2, Pout, KPDpump):
-        P1 = streams.at[stream1, "P"]
-        H1 = streams.at[stream1, "H"]
-        S1 = streams.at[stream1, "S"]
-        G = streams.at[stream1, "G"]
-        H2t = prop.p_s(Pout, S1, fluid)["H"]
-        H2 = H1 + (H2t - H1) / KPDpump
-        T2 = prop.h_p(H2, Pout, fluid)["T"]
-        S2 = prop.h_p(H2, Pout, fluid)["S"]
-        Q2 = prop.h_p(H2, Pout, fluid)["Q"]
-        streams.loc[stream2, "T":"G"] = [T2, Pout, H2, S2, Q2, G]
+    def __init__(self, stream1, stream2, Pout, KPDpump):
+        self.stream1 = stream1
+        self.stream2 = stream2
+        self.Pout = Pout
+        self.KPDpump = KPDpump
+
+    def calc(self):
+        P1 = streams.at[self.stream1, "P"]
+        H1 = streams.at[self.stream1, "H"]
+        S1 = streams.at[self.stream1, "S"]
+        G = streams.at[self.stream1, "G"]
+        H2t = prop.p_s(self.Pout, S1, fluid)["H"]
+        H2 = H1 + (H2t - H1) / self.KPDpump
+        T2 = prop.h_p(H2, self.Pout, fluid)["T"]
+        S2 = prop.h_p(H2, self.Pout, fluid)["S"]
+        Q2 = prop.h_p(H2, self.Pout, fluid)["Q"]
+        streams.loc[self.stream2, "T":"G"] = [T2, self.Pout, H2, S2, Q2, G]
         N = G * (H2 - H1)
         blocks.loc["PUMP", "N"] = N
 
 
 class regen:
-    def calc(stream11, stream12, stream21, stream22, dTmin, dPreg1, dPreg2):
-        H11 = streams.at[stream11, "H"]
-        H21 = streams.at[stream21, "H"]
-        T11 = streams.at[stream11, "T"]
-        T21 = streams.at[stream21, "T"]
-        S11 = streams.at[stream11, "S"]
-        S21 = streams.at[stream21, "S"]
-        P1 = streams.at[stream11, "P"] - dPreg1
-        P2 = streams.at[stream21, "P"] - dPreg2
-        G1 = streams.at[stream11, "G"]
-        G2 = streams.at[stream21, "G"]
+    def __init__(self, stream11, stream12, stream21, stream22, dTmin, dPreg1, dPreg2):
+        self.stream11 = stream11
+        self.stream12 = stream12
+        self.stream21 = stream21
+        self.stream22 = stream22
+        self.dTmin = dTmin
+        self.dPreg1 = dPreg1
+        self.dPreg2 = dPreg2
+    def calc(self):
+        H11 = streams.at[self.stream11, "H"]
+        H21 = streams.at[self.stream21, "H"]
+        T11 = streams.at[self.stream11, "T"]
+        T21 = streams.at[self.stream21, "T"]
+        S11 = streams.at[self.stream11, "S"]
+        S21 = streams.at[self.stream21, "S"]
+        P1 = streams.at[self.stream11, "P"] - self.dPreg1
+        P2 = streams.at[self.stream21, "P"] - self.dPreg2
+        G1 = streams.at[self.stream11, "G"]
+        G2 = streams.at[self.stream21, "G"]
         t1 = np.zeros(s + 1)
         t2 = np.zeros(s + 1)
         Q = np.zeros(s + 1)
@@ -175,10 +196,10 @@ class regen:
             S22 = S21
             S12 = S11
             Q[s] = 0
-            Q12 = streams.at[stream11, "Q"]
-            Q22 = streams.at[stream21, "Q"]
+            Q12 = streams.at[self.stream11, "Q"]
+            Q22 = streams.at[self.stream21, "Q"]
         else:
-            T12 = T21 + dTmin
+            T12 = T21 + self.dTmin
             H12 = prop.t_p(T12, P1, fluid)["H"]
             step = (H11 - H12) / s
             h11 = H11
@@ -205,18 +226,18 @@ class regen:
             S12 = prop.h_p(H12, P1, fluid)["S"]
             Q12 = prop.h_p(H12, P1, fluid)["Q"]
             Q22 = prop.h_p(H22, P2, fluid)["Q"]
-        streams.loc[stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
-        streams.loc[stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
+        streams.loc[self.stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
+        streams.loc[self.stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
         blocks.loc["REGENERATOR", "Q"] = Q[s]
 
-    def TQ(stream11, stream12, stream21, stream22):
-        H11 = streams.at[stream11, "H"]
-        H21 = streams.at[stream21, "H"]
-        H12 = streams.at[stream12, "H"]
-        P1 = streams.at[stream12, "P"]
-        P2 = streams.at[stream22, "P"]
-        G1 = streams.at[stream11, "G"]
-        G2 = streams.at[stream21, "G"]
+    def TQ(self):
+        H11 = streams.at[self.stream11, "H"]
+        H21 = streams.at[self.stream21, "H"]
+        H12 = streams.at[self.stream12, "H"]
+        P1 = streams.at[self.stream12, "P"]
+        P2 = streams.at[self.stream22, "P"]
+        G1 = streams.at[self.stream11, "G"]
+        G2 = streams.at[self.stream21, "G"]
         step = (H11 - H12) / s
         t1 = np.zeros(s + 1)
         t2 = np.zeros(s + 1)
@@ -245,30 +266,41 @@ class regen:
 
 
 class turbine:
-    def calc(stream1, stream2, Pout, KPDturb):
-        P1 = streams.at[stream1, "P"]
-        H1 = streams.at[stream1, "H"]
-        S1 = streams.at[stream1, "S"]
-        G = streams.at[stream1, "G"]
-        H2t = prop.p_s(Pout, S1, fluid)["H"]
-        H2 = H1 - (H1 - H2t) * KPDturb
-        T2 = prop.h_p(H2, Pout, fluid)["T"]
-        S2 = prop.h_p(H2, Pout, fluid)["S"]
-        Q2 = prop.h_p(H2, Pout, fluid)["Q"]
-        streams.loc[stream2, "T":"G"] = [T2, Pout, H2, S2, Q2, G]
+    def __init__(self, stream1, stream2, Pout, KPDturb):
+        self.stream1 = stream1
+        self.stream2 = stream2
+        self.Pout = Pout
+        self.KPDturb = KPDturb
+    def calc(self):
+        P1 = streams.at[self.stream1, "P"]
+        H1 = streams.at[self.stream1, "H"]
+        S1 = streams.at[self.stream1, "S"]
+        G = streams.at[self.stream1, "G"]
+        H2t = prop.p_s(self.Pout, S1, fluid)["H"]
+        H2 = H1 - (H1 - H2t) * self.KPDturb
+        T2 = prop.h_p(H2, self.Pout, fluid)["T"]
+        S2 = prop.h_p(H2, self.Pout, fluid)["S"]
+        Q2 = prop.h_p(H2, self.Pout, fluid)["Q"]
+        streams.loc[self.stream2, "T":"G"] = [T2, self.Pout, H2, S2, Q2, G]
         N = G * (H1 - H2)
         blocks.loc["TURBINE", "N"] = N
 
 
 class condenser:
-    def calc(stream11, stream12, stream21, stream22, minDTcond):
-        P1 = streams.at[stream11, "P"]
-        H11 = streams.at[stream11, "H"]
-        G1 = streams.at[stream11, "G"]
+    def __init__(self, stream11, stream12, stream21, stream22, minDTcond):
+        self.stream11 = stream11
+        self.stream12 = stream12
+        self.stream21 = stream21
+        self.stream22 = stream22
+        self.minDTcond = minDTcond
+    def calc(self):
+        P1 = streams.at[self.stream11, "P"]
+        H11 = streams.at[self.stream11, "H"]
+        G1 = streams.at[self.stream11, "G"]
         H12 = prop.p_q(P1, 0, fluid)["H"]
-        P2 = streams.at[stream21, "P"]
-        H21 = streams.at[stream21, "H"]
-        G2 = streams.at[stream21, "G"]
+        P2 = streams.at[self.stream21, "P"]
+        H21 = streams.at[self.stream21, "H"]
+        G2 = streams.at[self.stream21, "G"]
         step = (H11 - H12) / s
 
         def G2sved(G2):
@@ -295,7 +327,7 @@ class condenser:
             H22 = h21
             DT = t1 - t2
             minDT = round(min(DT), 5)
-            delta = minDT - minDTcond
+            delta = minDT - self.minDTcond
             return delta
 
         G2 = sved(G2sved, [0, 9999], svedtol)
@@ -326,19 +358,19 @@ class condenser:
         S22 = prop.h_p(H22, P2, fluidcond)["S"]
         Q12 = prop.h_p(H12, P1, fluid)["Q"]
         Q22 = prop.h_p(H22, P2, fluidcond)["Q"]
-        streams.loc[stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
-        streams.loc[stream21, "G"] = G2
-        streams.loc[stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
+        streams.loc[self.stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
+        streams.loc[self.stream21, "G"] = G2
+        streams.loc[self.stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
         blocks.loc["CONDENSER", "Q"] = Q[s]
 
-    def TQ(stream11, stream12, stream21, stream22):
-        H11 = streams.at[stream11, "H"]
-        H21 = streams.at[stream21, "H"]
-        H12 = streams.at[stream12, "H"]
-        P1 = streams.at[stream12, "P"]
-        P2 = streams.at[stream22, "P"]
-        G1 = streams.at[stream11, "G"]
-        G2 = streams.at[stream21, "G"]
+    def TQ(self):
+        H11 = streams.at[self.stream11, "H"]
+        H21 = streams.at[self.stream21, "H"]
+        H12 = streams.at[self.stream12, "H"]
+        P1 = streams.at[self.stream12, "P"]
+        P2 = streams.at[self.stream22, "P"]
+        G1 = streams.at[self.stream11, "G"]
+        G2 = streams.at[self.stream21, "G"]
         step = (H11 - H12) / s
         t1 = np.zeros(s + 1)
         t2 = np.zeros(s + 1)
@@ -367,15 +399,23 @@ class condenser:
 
 
 class cooler:
-    def calc(stream11, stream12, stream21, stream22, minDTcond, T1out, fluid):
-        P1 = streams.at[stream11, "P"]
-        H11 = streams.at[stream11, "H"]
-        G1 = streams.at[stream11, "G"]
-        T12 = T1out
+    def __init__(self, stream11, stream12, stream21, stream22, minDTcond, T1out, fluid):
+        self.stream11 = stream11
+        self.stream12 = stream12
+        self.stream21 = stream21
+        self.stream22 = stream22
+        self.minDTcond = minDTcond
+        self.T1out = T1out
+        self.fluid = fluid
+    def calc(self):
+        P1 = streams.at[self.stream11, "P"]
+        H11 = streams.at[self.stream11, "H"]
+        G1 = streams.at[self.stream11, "G"]
+        T12 = self.T1out
         H12 = prop.t_p(T12, P1, fluid)["H"]
-        P2 = streams.at[stream21, "P"]
-        H21 = streams.at[stream21, "H"]
-        G2 = streams.at[stream21, "G"]
+        P2 = streams.at[self.stream21, "P"]
+        H21 = streams.at[self.stream21, "H"]
+        G2 = streams.at[self.stream21, "G"]
         step = (H11 - H12) / s
 
         def G2sved(G2):
@@ -402,7 +442,7 @@ class cooler:
             H22 = h21
             DT = t1 - t2
             minDT = round(min(DT), 5)
-            delta = minDT - minDTcond
+            delta = minDT - self.minDTcond
             return delta
 
         G2 = sved(G2sved, [0, 9999], svedtol)
@@ -433,19 +473,19 @@ class cooler:
         S22 = prop.h_p(H22, P2, fluidcond)["S"]
         Q12 = prop.h_p(H12, P1, fluid)["Q"]
         Q22 = prop.h_p(H22, P2, fluidcond)["Q"]
-        streams.loc[stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
-        streams.loc[stream21, "G"] = G2
-        streams.loc[stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
+        streams.loc[self.stream12, "T":"G"] = [T12, P1, H12, S12, Q12, G1]
+        streams.loc[self.stream21, "G"] = G2
+        streams.loc[self.stream22, "T":"G"] = [T22, P2, H22, S22, Q22, G2]
         blocks.loc["CONDENSER", "Q"] = Q[s]
 
-    def TQ(stream11, stream12, stream21, stream22):
-        H11 = streams.at[stream11, "H"]
-        H21 = streams.at[stream21, "H"]
-        H12 = streams.at[stream12, "H"]
-        P1 = streams.at[stream12, "P"]
-        P2 = streams.at[stream22, "P"]
-        G1 = streams.at[stream11, "G"]
-        G2 = streams.at[stream21, "G"]
+    def TQ(self):
+        H11 = streams.at[self.stream11, "H"]
+        H21 = streams.at[self.stream21, "H"]
+        H12 = streams.at[self.stream12, "H"]
+        P1 = streams.at[self.stream12, "P"]
+        P2 = streams.at[self.stream22, "P"]
+        G1 = streams.at[self.stream11, "G"]
+        G2 = streams.at[self.stream21, "G"]
         step = (H11 - H12) / s
         t1 = np.zeros(s + 1)
         t2 = np.zeros(s + 1)

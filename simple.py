@@ -1,6 +1,7 @@
 import modules
-import pandas as pd
 import prop
+import pandas as pd
+# import matplotlib.pyplot as plt
 
 # Таблицы с потоками и блоками:
 streams = pd.read_excel("data.xlsx", sheet_name="SIMPLE-streams", index_col=0)
@@ -38,32 +39,32 @@ streams.loc["COND-PUMP", "T":"Q"] = list(prop.p_q(Pcond, 0, fluid).values())
 modules.init(streams, blocks, fluid, gas, fluidcond)
 for i in range(9999):
 
-    modules.pump.calc('COND-PUMP', "PUMP-HEAT", Ppump, KPDpump)
-    modules.heater.calc("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB", Tout, DTheat)
-    modules.turbine.calc("HEAT-TURB", "TURB-COND", Pcond, KPDturb)
-    modules.condenser.calc("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT", DTcond)
+    PUMP = modules.pump('COND-PUMP', "PUMP-HEAT", Ppump, KPDpump)
+    PUMP.calc()
+    HEATER = modules.heater("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB", Tout, DTheat)
+    HEATER.calc()
+    TURBINE = modules.turbine("HEAT-TURB", "TURB-COND", Pcond, KPDturb)
+    TURBINE.calc()
+    CONDENSER = modules.condenser("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT", DTcond)
+    CONDENSER.calc()
 
-    Qbalance = (blocks.loc["HEATER", "Q"] + blocks.loc["PUMP", "N"] - blocks.loc["CONDENSER", "Q"] - blocks.loc[
-        "TURBINE", "N"]) / blocks.loc["HEATER", "Q"]
+    Qbalance = (blocks.loc["HEATER", "Q"] + blocks.loc["PUMP", "N"] - blocks.loc["CONDENSER", "Q"] -
+                blocks.loc["TURBINE", "N"]) / blocks.loc["HEATER", "Q"]
     if abs(Qbalance) < 10 ** -4:
         break
 
 KPD = (blocks.loc["TURBINE", "N"] - blocks.loc["PUMP", "N"]) / blocks.loc["HEATER", "Q"]
 print("KPD:", round(KPD * 100, 5))
 
-
-
 #
 print(streams)
 
-
 #
-import matplotlib.pyplot as plt
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 12
-plt.figure(figsize=(16, 4))
-plt.subplot(1, 2, 1)
-modules.heater.TQ("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB")
-plt.subplot(1, 2, 2)
-modules.condenser.TQ("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT")
-plt.show()
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams["font.size"] = 12
+# plt.figure(figsize=(16, 4))
+# plt.subplot(1, 2, 1)
+# HEATER.TQ("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB")
+# plt.subplot(1, 2, 2)
+# CONDENSER.TQ("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT")
+# plt.show()
