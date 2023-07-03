@@ -1,5 +1,4 @@
-print(1)
-from modules import init, pump, regen, heater, turbine, condenser
+from modules import init, pump, heater, turbine, condenser
 import pandas as pd
 import prop
 
@@ -39,7 +38,7 @@ streams.loc["COND-PUMP", "T":"Q"] = list(prop.p_q(Pcond, 0, fluid).values())
 init(streams, blocks, fluid, gas, fluidcond)
 for i in range(9999):
 
-    pump.calc("COND-PUMP", "PUMP-HEAT", Ppump, KPDpump)
+    pump.calc('COND-PUMP', "PUMP-HEAT", Ppump, KPDpump)
     heater.calc("IN-HEAT", "HEAT-OUT", "PUMP-HEAT", "HEAT-TURB", Tout, DTheat)
     turbine.calc("HEAT-TURB", "TURB-COND", Pcond, KPDturb)
     condenser.calc("TURB-COND", "COND-PUMP", "IN-COND", "COND-OUT", DTcond)

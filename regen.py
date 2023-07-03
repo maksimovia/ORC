@@ -37,11 +37,7 @@ streams.loc["IN-HEAT", "T":"Q"] = list(prop.t_p(Tin, Pgas, gas).values())
 streams.loc["IN-COND", "T":"Q"] = list(prop.t_p(Tfluidcond, Pfluidcond, fluidcond).values())
 streams.loc["COND-PUMP", "T":"Q"] = list(prop.p_q(Pcond, 0, fluid).values())
 
-# Для графика
-from jupyterplot import ProgressPlot
 
-pp = ProgressPlot()
-balance = []
 
 # Итеративный расчет для сведения баланса:
 init(streams, blocks, fluid, gas, fluidcond)
@@ -56,12 +52,9 @@ for i in range(9999):
 
     Qbalance = (blocks.loc["HEATER", "Q"] + blocks.loc["PUMP", "N"] - blocks.loc["CONDENSER", "Q"] - blocks.loc[
         "TURBINE", "N"]) / blocks.loc["HEATER", "Q"]
-    balance.append(Qbalance)
-    pp.update(Qbalance)
     if abs(Qbalance) < 10 ** -4:
         break
 
-pp.finalize()
 
 KPD = (blocks.loc["TURBINE", "N"] - blocks.loc["PUMP", "N"]) / blocks.loc["HEATER", "Q"]
 print("KPD:", round(KPD * 100, 5))
