@@ -1,5 +1,5 @@
 import prop
-from sqlite import read_stream, write_stream, read_block, write_block
+from sqlite import read_stream, write_stream, write_block
 import numpy as np
 
 tolerance = 10 ** -5
@@ -7,9 +7,9 @@ h_steps = 3
 
 
 def root(func, a, b, root_tol):
-    while abs(func(a)-func(b)) > root_tol:
-        x = a + (b-a)/2
-        if func(a)*func(x) < 0:
+    while abs(func(a) - func(b)) > root_tol:
+        x = a + (b - a) / 2
+        if func(a) * func(x) < 0:
             b = x
         else:
             a = x
@@ -62,6 +62,7 @@ class HEATER:
             DT = t1 - t2
             min_dt = min(DT)
             return self.dT - min_dt
+
         G2 = root(G2_func, 1, 10000, tolerance)
         t1 = np.zeros(h_steps + 1)
         t2 = np.zeros(h_steps + 1)
@@ -81,11 +82,11 @@ class HEATER:
                 h22 = h21 + (Q[h_steps - i] - Q[h_steps - i - 1]) / G2
                 h21 = h22
         T22 = t2[0]
-        H22 = prop.t_p(T22,P21,fluid2)["H"]
-        S22 = prop.t_p(T22,P21,fluid2)["S"]
-        Q22 = prop.t_p(T22,P21,fluid2)["Q"]
-        write_stream(self.stream12,T12,P11,H12,S12,Q12,G1,fluid1)
-        write_stream(self.stream22,T22,P21,H22,S22,Q22,G2,fluid2)
+        H22 = prop.t_p(T22, P21, fluid2)["H"]
+        S22 = prop.t_p(T22, P21, fluid2)["S"]
+        Q22 = prop.t_p(T22, P21, fluid2)["Q"]
+        write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
+        write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
         write_block('HEATER', Q[-1])
         pass
 
@@ -107,8 +108,8 @@ class PUMP:
         T2 = prop.h_p(H2, self.p_out, fluid)["T"]
         S2 = prop.h_p(H2, self.p_out, fluid)["S"]
         Q2 = prop.h_p(H2, self.p_out, fluid)["Q"]
-        write_stream(self.stream2,T2,self.p_out,H2,S2,Q2,G,fluid)
-        N = G*(H2-H1)
+        write_stream(self.stream2, T2, self.p_out, H2, S2, Q2, G, fluid)
+        N = G * (H2 - H1)
         write_block('PUMP', N)
 
         pass
@@ -131,8 +132,8 @@ class TURBINE:
         T2 = prop.h_p(H2, self.p_out, fluid)["T"]
         S2 = prop.h_p(H2, self.p_out, fluid)["S"]
         Q2 = prop.h_p(H2, self.p_out, fluid)["Q"]
-        write_stream(self.stream2,T2,self.p_out,H2,S2,Q2,G,fluid)
-        N = G*(H1-H2)
+        write_stream(self.stream2, T2, self.p_out, H2, S2, Q2, G, fluid)
+        N = G * (H1 - H2)
         write_block('TURBINE', N)
         pass
 
@@ -177,6 +178,7 @@ class CONDENSER:
             DT = t1 - t2
             min_dt = min(DT)
             return self.dt - min_dt
+
         G2 = root(G2_func, 1, 10000, tolerance)
         t1 = np.zeros(h_steps + 1)
         t2 = np.zeros(h_steps + 1)
@@ -196,18 +198,18 @@ class CONDENSER:
                 h22 = h21 + (Q[h_steps - i] - Q[h_steps - i - 1]) / G2
                 h21 = h22
         T22 = t2[0]
-        H22 = prop.t_p(T22,P2,fluid2)["H"]
-        S22 = prop.t_p(T22,P2,fluid2)["S"]
-        Q22 = prop.t_p(T22,P2,fluid2)["Q"]
-        T12 = prop.h_p(H12,P1,fluid1)["T"]
-        S12 = prop.h_p(H12,P1,fluid1)["S"]
-        T21 = prop.h_p(H21,P2,fluid2)["T"]
-        S21 = prop.h_p(H21,P2,fluid2)["S"]
-        Q21 = prop.h_p(H21,P2,fluid2)["Q"]
-        write_stream(self.stream12,T12,P1,H12,S12,0,G1,fluid1)
-        write_stream(self.stream21,T21,P2,H21,S21,Q21,G2,fluid2)
-        write_stream(self.stream22,T22,P2,H22,S22,Q22,G2,fluid2)
-        write_block('CONDENSER',Q[-1])
+        H22 = prop.t_p(T22, P2, fluid2)["H"]
+        S22 = prop.t_p(T22, P2, fluid2)["S"]
+        Q22 = prop.t_p(T22, P2, fluid2)["Q"]
+        T12 = prop.h_p(H12, P1, fluid1)["T"]
+        S12 = prop.h_p(H12, P1, fluid1)["S"]
+        T21 = prop.h_p(H21, P2, fluid2)["T"]
+        S21 = prop.h_p(H21, P2, fluid2)["S"]
+        Q21 = prop.h_p(H21, P2, fluid2)["Q"]
+        write_stream(self.stream12, T12, P1, H12, S12, 0, G1, fluid1)
+        write_stream(self.stream21, T21, P2, H21, S21, Q21, G2, fluid2)
+        write_stream(self.stream22, T22, P2, H22, S22, Q22, G2, fluid2)
+        write_block('CONDENSER', Q[-1])
         pass
 
 # class regen:
