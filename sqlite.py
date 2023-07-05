@@ -5,9 +5,9 @@ def open_db():
 
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
-    cursor.execute('''SELECT name FROM sqlite_master WHERE type='table' AND name='streams' ''')
 
-    if cursor.fetchone() is None:
+    if cursor.execute('''SELECT name FROM sqlite_master WHERE type='table' AND name='streams' ''').fetchone() is None:
+        print('делаю бд')
         cursor.execute('''CREATE TABLE IF NOT EXISTS streams
         (NAME TEXT DEFAULT NULL,
         T REAL DEFAULT NULL,
@@ -15,7 +15,8 @@ def open_db():
         H REAL DEFAULT NULL,
         S REAL DEFAULT NULL,
         Q REAL DEFAULT NULL,
-        G REAL DEFAULT NULL)''')
+        G REAL DEFAULT NULL,
+        X TEXT DEFAULT NULL)''')
 
         cursor.execute('''CREATE TABLE IF NOT EXISTS blocks
         (NAME TEXT DEFAULT NULL,
@@ -37,7 +38,6 @@ def open_db():
         cursor.execute('''INSERT INTO blocks(NAME) VALUES
         ('PUMP'),
         ('TURBINE'),
-        ('REGEN'),
         ('CONDENSER'),
         ('HEATER')
         ''')
@@ -51,8 +51,8 @@ def close_db():
     pass
 
 
-def write_stream(stream, t, p, h, s, q, g):
-    cursor.execute('''UPDATE streams SET T=?,P=?, H=?, S=?, Q=?, G=? WHERE NAME==? ''', [t, p, h, s, q, g, stream])
+def write_stream(stream, t, p, h, s, q, g, x):
+    cursor.execute('''UPDATE streams SET T=?,P=?, H=?, S=?, Q=?, G=?, X=? WHERE NAME==? ''', [t, p, h, s, q, g, x, stream])
     pass
 
 
@@ -63,4 +63,5 @@ def read_stream(stream):
     s = cursor.execute('''SELECT S FROM streams WHERE NAME==? ''', [stream]).fetchone()
     q = cursor.execute('''SELECT Q FROM streams WHERE NAME==? ''', [stream]).fetchone()
     g = cursor.execute('''SELECT G FROM streams WHERE NAME==? ''', [stream]).fetchone()
-    return {'T': t, 'P': p, 'H': h, 'S': s, 'Q': q, 'G': g}
+    x = cursor.execute('''SELECT X FROM streams WHERE NAME==? ''', [stream]).fetchone()
+    return {'T': t[0], 'P': p[0], 'H': h[0], 'S': s[0], 'Q': q[0], 'G': g[0], 'X': x[0]}
