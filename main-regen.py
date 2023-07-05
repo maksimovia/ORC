@@ -1,6 +1,5 @@
 from sqlite import open_db, close_db, write_stream, read_stream, read_block
 import modules
-
 import prop
 
 open_db()
@@ -41,9 +40,9 @@ for i in range(9999):
     pump = modules.PUMP('COND-PUMP', 'PUMP-REGEN', p_pump, kpd_pump)
     pump.calc()
     if i == 0:
-        write_stream('REGEN-HEAT',read_stream('PUMP-REGEN')["T"],read_stream('PUMP-REGEN')["P"],
-                     read_stream('PUMP-REGEN')["H"],read_stream('PUMP-REGEN')["S"],
-                     read_stream('PUMP-REGEN')["Q"],read_stream('PUMP-REGEN')["G"],read_stream('PUMP-REGEN')["X"])
+        write_stream('REGEN-HEAT', read_stream('PUMP-REGEN')["T"], read_stream('PUMP-REGEN')["P"],
+                     read_stream('PUMP-REGEN')["H"], read_stream('PUMP-REGEN')["S"],
+                     read_stream('PUMP-REGEN')["Q"], read_stream('PUMP-REGEN')["G"], read_stream('PUMP-REGEN')["X"])
     else:
         regen = modules.REGEN('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen)
         regen.calc()
@@ -63,6 +62,6 @@ for i in range(9999):
         break
 
 KPD = (read_block('TURBINE')["Q"] - read_block('PUMP')["Q"]) / read_block('HEATER')["Q"]
-# print("KPD:", round(KPD * 100, 5))
+print("KPD:", round(KPD * 100, 5))
 
 close_db()
