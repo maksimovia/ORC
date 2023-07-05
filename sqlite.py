@@ -52,8 +52,19 @@ def close_db():
 
 
 def write_stream(stream, t, p, h, s, q, g, x):
-    cursor.execute('''UPDATE streams SET T=?,P=?, H=?, S=?, Q=?, G=?, X=? WHERE NAME==? ''', [t, p, h, s, q, g, x, stream])
+    cursor.execute('''UPDATE streams SET T=?,P=?, H=?, S=?, Q=?, G=?, X=? WHERE NAME==? ''',
+                   [t, p, h, s, q, g, x, stream])
     pass
+
+
+def write_block(block, q):
+    cursor.execute('''UPDATE blocks SET Q=? WHERE NAME==? ''', [q, block])
+    pass
+
+
+def read_block(block):
+    q = cursor.execute('''SELECT Q FROM blocks WHERE NAME==? ''', [block]).fetchone()
+    return {'Q': q[0]}
 
 
 def read_stream(stream):
