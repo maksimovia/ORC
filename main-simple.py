@@ -24,6 +24,9 @@ T_cond = 30
 p_pump = 3.4
 kpd_pump = 0.9
 kpd_turbine = 0.9
+dt_heat = 5
+dt_cond = 5
+cycle_tolerance = 10**-6
 
 write_stream('IN-HEAT', T_gas, P_gas, prop.t_p(T_gas, P_gas, X_gas)["H"], prop.t_p(T_gas, P_gas, X_gas)["S"],
              prop.t_p(T_gas, P_gas, X_gas)["Q"], G_gas, X_gas)
@@ -32,20 +35,20 @@ write_stream('IN-COND', T_cool, P_cool, prop.t_p(T_cool, P_cool, X_cool)["H"], p
 write_stream('COND-PUMP', T_cond, prop.t_q(T_cond, 0, X_cond)["P"], prop.t_q(T_cond, 0, X_cond)["H"],
              prop.t_q(T_cond, 0, X_cond)["S"], 0, 100, X_cond)
 
-for i in range(4):
+for i in range(9999):
     pump = modules.PUMP('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
     pump.calc()
-    heater = modules.HEATER('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', 5, 80)
+    heater = modules.HEATER('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out)
     heater.calc()
     turbine = modules.TURBINE('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turbine)
     turbine.calc()
-    condenser = modules.CONDENSER('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', 5)
+    condenser = modules.CONDENSER('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond)
     condenser.calc()
 
     balance = (read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
                read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
     print(balance)
-    if abs(balance) < 10 ** -6:
+    if abs(balance) < cycle_tolerance:
         break
 
 KPD = (read_block('TURBINE')["Q"] - read_block('PUMP')["Q"]) / read_block('HEATER')["Q"]

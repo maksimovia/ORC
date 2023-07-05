@@ -21,7 +21,6 @@ def open_db():
         cursor.execute('''CREATE TABLE IF NOT EXISTS blocks
         (NAME TEXT DEFAULT NULL,
         Q REAL DEFAULT NULL,
-        N REAL DEFAULT NULL,
         KPD REAL DEFAULT NULL)''')
 
         cursor.execute('''INSERT INTO streams(NAME) VALUES
@@ -32,14 +31,19 @@ def open_db():
         ('HEAT-TURB'),
         ('TURB-COND'),
         ('IN-COND'),
-        ('COND-OUT') 
+        ('COND-OUT'),
+        ('PUMP-REGEN'),
+        ('REGEN-HEAT'),
+        ('TURB-REGEN'),
+        ('REGEN-COND')
         ''')
 
         cursor.execute('''INSERT INTO blocks(NAME) VALUES
         ('PUMP'),
         ('TURBINE'),
         ('CONDENSER'),
-        ('HEATER')
+        ('HEATER'),
+        ('REGEN')
         ''')
     pass
 
