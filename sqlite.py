@@ -2,9 +2,11 @@ def open_db():
     import sqlite3
     global connection
     global cursor
+
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
     cursor.execute('''SELECT name FROM sqlite_master WHERE type='table' AND name='streams' ''')
+
     if cursor.fetchone() is None:
         cursor.execute('''CREATE TABLE IF NOT EXISTS streams
         (NAME TEXT DEFAULT NULL,
@@ -14,11 +16,13 @@ def open_db():
         S REAL DEFAULT NULL,
         Q REAL DEFAULT NULL,
         G REAL DEFAULT NULL)''')
+
         cursor.execute('''CREATE TABLE IF NOT EXISTS blocks
         (NAME TEXT DEFAULT NULL,
         Q REAL DEFAULT NULL,
         N REAL DEFAULT NULL,
         KPD REAL DEFAULT NULL)''')
+
         cursor.execute('''INSERT INTO streams(NAME) VALUES
         ('IN-HEAT'),
         ('HEAT-OUT'),
@@ -29,6 +33,7 @@ def open_db():
         ('IN-COND'),
         ('COND-OUT') 
         ''')
+
         cursor.execute('''INSERT INTO blocks(NAME) VALUES
         ('PUMP'),
         ('TURBINE'),
