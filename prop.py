@@ -1,5 +1,4 @@
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
-
 RP = REFPROPFunctionLibrary('C:/Program Files (x86)/REFPROP')
 
 iUnits = 21
