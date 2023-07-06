@@ -4,7 +4,6 @@ import prop
 
 open_db()
 
-
 # Параметры нагревающей среды:
 X_gas = "N2;0.78;O2;0.1;CO2;0.02;H2O;0.1"
 T_gas = 183.6
@@ -22,12 +21,12 @@ G_cool = 10000
 X_cond = 'R236EA'
 T_cond = 30
 p_pump = 3.3
-kpd_pump = 0.9
-kpd_turbine = 0.9
+kpd_pump = 0.85
+kpd_turbine = 0.85
 dt_heat = 10
 dt_cond = 5
 dt_regen = 5
-cycle_tolerance = 10**-6
+cycle_tolerance = 10**-4
 
 write_stream('IN-HEAT', T_gas, P_gas, prop.t_p(T_gas, P_gas, X_gas)["H"], prop.t_p(T_gas, P_gas, X_gas)["S"],
              prop.t_p(T_gas, P_gas, X_gas)["Q"], G_gas, X_gas)
@@ -63,5 +62,20 @@ for i in range(9999):
 
 KPD = (read_block('TURBINE')["Q"] - read_block('PUMP')["Q"]) / read_block('HEATER')["Q"]
 print("KPD:", round(KPD * 100, 5))
+
+print()
+print('IN-HEAT', read_stream('IN-HEAT'))
+print('HEAT-OUT', read_stream('HEAT-OUT'))
+print()
+print('COND-PUMP', read_stream('COND-PUMP'))
+print('PUMP-REGEN', read_stream('PUMP-REGEN'))
+print('REGEN-HEAT', read_stream('REGEN-HEAT'))
+print('HEAT-TURB', read_stream('HEAT-TURB'))
+print('TURB-REGEN', read_stream('TURB-REGEN'))
+print('REGEN-COND', read_stream('REGEN-COND'))
+print('COND-PUMP', read_stream('COND-PUMP'))
+print()
+print('IN-COND', read_stream('IN-COND'))
+print('COND-OUT', read_stream('COND-OUT'))
 
 close_db()

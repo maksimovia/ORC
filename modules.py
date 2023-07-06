@@ -2,7 +2,7 @@ import prop
 from sqlite import read_stream, write_stream, write_block
 import numpy as np
 
-root_tolerance = 10 ** -5
+root_tolerance = 10 ** -6
 h_steps = 20
 
 
