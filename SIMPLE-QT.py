@@ -171,33 +171,19 @@ class Window(QMainWindow):
 
         for i in range(9999):
             pump = modules.PUMP('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
-            QApplication.processEvents()
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-PUMP.png'))
-            QApplication.processEvents()
-
             pump.calc()
 
             heater = modules.HEATER('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out)
-            QApplication.processEvents()
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-HEAT.png'))
-            QApplication.processEvents()
-
             heater.calc()
 
             turbine = modules.TURBINE('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
-            QApplication.processEvents()
-
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-TURB.png'))
-            QApplication.processEvents()
-
             turbine.calc()
 
             condenser = modules.CONDENSER('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond)
-            QApplication.processEvents()
-
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-COND.png'))
-
-            QApplication.processEvents()
             condenser.calc()
 
             balance = (read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
