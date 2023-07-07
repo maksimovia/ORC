@@ -5,6 +5,7 @@ from PyQt6.QtGui import QPixmap
 from sqlite import open_db, close_db, write_stream, read_block
 import modules
 import prop
+from threading import Thread
 
 
 class Window(QMainWindow):
@@ -13,8 +14,8 @@ class Window(QMainWindow):
         self.setWindowTitle("пргм")
         self.setFixedSize(QSize(800, 700))
 
-        button = QPushButton("го")
-        button.clicked.connect(self.calc)
+        self.start_button = QPushButton("го")
+        self.start_button.clicked.connect(self.start)
         self.img = QLabel()
         self.img.setPixmap(QPixmap('qt/SIMPLE.png'))
 
@@ -32,12 +33,6 @@ class Window(QMainWindow):
         self.t_gas_out_input = QLineEdit()
         self.t_gas_out_input.setText('80')
 
-        self.t_gas_input.textEdited.connect(self.input)
-        self.p_gas_input.textEdited.connect(self.input)
-        self.g_gas_input.textEdited.connect(self.input)
-        self.x_gas_input.textEdited.connect(self.input)
-        self.t_gas_out_input.textEdited.connect(self.input)
-
         # Параметры охлаждающей среды:
         self.t_cool_input = QLineEdit()
         self.t_cool_input.setText('15')
@@ -47,11 +42,6 @@ class Window(QMainWindow):
         self.g_cool_input.setText('1000')
         self.x_cool_input = QLineEdit()
         self.x_cool_input.setText('WATER')
-
-        self.t_cool_input.textEdited.connect(self.input)
-        self.p_cool_input.textEdited.connect(self.input)
-        self.g_cool_input.textEdited.connect(self.input)
-        self.x_cool_input.textEdited.connect(self.input)
 
         # Параметры ОЦР:
         self.t_cond_input = QLineEdit()
@@ -70,15 +60,6 @@ class Window(QMainWindow):
         self.dt_cond_input.setText('5')
         self.cycle_tolerance_input = QLineEdit()
         self.cycle_tolerance_input.setText('10**-4')
-
-        self.t_cond_input.textEdited.connect(self.input)
-        self.fluid_input.textEdited.connect(self.input)
-        self.p_pump_input.textEdited.connect(self.input)
-        self.kpd_pump_input.textEdited.connect(self.input)
-        self.kpd_turb_input.textEdited.connect(self.input)
-        self.dt_heat_input.textEdited.connect(self.input)
-        self.dt_cond_input.textEdited.connect(self.input)
-        self.cycle_tolerance_input.textEdited.connect(self.input)
 
         layout = QGridLayout()
 
@@ -103,63 +84,46 @@ class Window(QMainWindow):
         layout.addWidget(self.cycle_tolerance_input, 8, 2)
 
         layout.addWidget(self.img, 0, 0)
-        layout.addWidget(button, 3, 3)
+        layout.addWidget(self.start_button, 3, 3)
         layout.addWidget(self.kpd_output, 1, 3)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-    def input(self):
-        self.T_gas = self.t_gas_input.text()
-        self.P_gas = self.p_gas_input.text()
-        self.G_gas = self.g_gas_input.text()
-        self.X_gas = self.x_gas_input.text()
-        self.T_gas_out = self.t_gas_out_input.text()
+    def start(self):
+        print('def start')
+        self.calc_thread()
 
-        self.T_cool = self.t_cool_input.text()
-        self.P_cool = self.p_cool_input.text()
-        self.G_cool = self.g_cool_input.text()
-        self.X_cool = self.x_cool_input.text()
-
-        self.T_cond = self.t_cond_input.text()
-        self.X_cond = self.fluid_input.text()
-        self.p_pump = self.p_pump_input.text()
-        self.kpd_pump = self.kpd_pump_input.text()
-        self.kpd_turb = self.kpd_turb_input.text()
-        self.dt_heat = self.dt_heat_input.text()
-        self.dt_cond = self.dt_cond_input.text()
-        self.cycle_tolerance = self.cycle_tolerance_input.text()
-        pass
+    def calc_thread(self):
+        new_thread = Thread(target=self.calc)
+        new_thread.start()
 
     def calc(self):
         print('run calc')
 
         open_db()
+
         # Параметры нагревающей среды:
-
-        X_gas = self.X_gas
-        T_gas = float(self.T_gas)
-        P_gas = float(self.P_gas)
-        G_gas = float(self.G_gas)
-        T_gas_out = float(self.T_gas_out)
-
+        X_gas = self.x_gas_input.text()
+        T_gas = float(self.t_gas_input.text())
+        P_gas = float(self.p_gas_input.text())
+        G_gas = float(self.g_gas_input.text())
+        T_gas_out = float(self.t_gas_out_input.text())
         # Параметры охлаждающей среды:
-        X_cool = self.X_cool
-        T_cool = float(self.T_cool)
-        P_cool = float(self.P_cool)
-        G_cool = float(self.G_cool)
-
+        X_cool = self.x_cool_input.text()
+        T_cool = float(self.t_cool_input.text())
+        P_cool = float(self.p_cool_input.text())
+        G_cool = float(self.g_cool_input.text())
         # Параметры ОЦР:
-
-        X_cond = self.X_cond
-        T_cond = float(self.T_cond)
-        p_pump = float(self.p_pump)
-        kpd_pump = float(self.kpd_pump)
-        kpd_turb = float(self.kpd_turb)
-        dt_heat = float(self.dt_heat)
-        dt_cond = float(self.dt_cond)
-        cycle_tolerance = float(eval(self.cycle_tolerance))
+        X_cond = self.fluid_input.text()
+        T_cond = float(self.t_cond_input.text())
+        p_pump = float(self.p_pump_input.text())
+        kpd_pump = float(self.kpd_pump_input.text())
+        kpd_turb = float(self.kpd_turb_input.text())
+        dt_heat = float(self.dt_heat_input.text())
+        dt_cond = float(self.dt_cond_input.text())
+        cycle_tolerance = float(eval(self.cycle_tolerance_input.text()))
         write_stream('IN-HEAT', T_gas, P_gas, prop.t_p(T_gas, P_gas, X_gas)["H"], prop.t_p(T_gas, P_gas, X_gas)["S"],
                      prop.t_p(T_gas, P_gas, X_gas)["Q"], G_gas, X_gas)
         write_stream('IN-COND', T_cool, P_cool, prop.t_p(T_cool, P_cool, X_cool)["H"],
