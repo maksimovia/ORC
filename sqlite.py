@@ -7,7 +7,6 @@ def open_db():
     cursor = connection.cursor()
 
     if cursor.execute('''SELECT name FROM sqlite_master WHERE type='table' AND name='streams' ''').fetchone() is None:
-        print('делаю бд')
         cursor.execute('''CREATE TABLE IF NOT EXISTS streams
         (NAME TEXT DEFAULT NULL,
         T REAL DEFAULT NULL,
@@ -45,6 +44,7 @@ def open_db():
         ('HEATER'),
         ('REGEN')
         ''')
+    print('open DB')
     pass
 
 
@@ -52,6 +52,7 @@ def close_db():
     connection.commit()
     cursor.close()
     connection.close()
+    print('close DB')
     pass
 
 

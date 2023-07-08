@@ -1,12 +1,14 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QGridLayout, QWidget, QLabel, QLineEdit
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QGridLayout, QWidget, QLabel, QLineEdit, QHBoxLayout
 from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QPixmap
-
 from sqlite import open_db, close_db, write_stream, read_block
-import modules
+from modules import Pump, Cond, Heat, Turb
 import prop
 from threading import Thread
-
+import datetime
+import time
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
 class Window(QMainWindow):
     def __init__(self):
@@ -18,8 +20,12 @@ class Window(QMainWindow):
         self.start_button.clicked.connect(self.start)
         self.img = QLabel()
         self.img.setPixmap(QPixmap('qt/SIMPLE.png'))
-
         self.kpd_output = QLabel(f'КПД цикла равен 0%')
+        self.time_lbl = QLabel('Время расчёта: 0 с')
+        self.graph_balance = FigureCanvasQTAgg(plt.Figure())
+
+        self.calc_status_img = QLabel('_')
+        self.calc_status_text = QLabel('Ожидание запуска.')
 
         # Параметры нагревающей среды:
         self.t_gas_input = QLineEdit()
@@ -32,7 +38,6 @@ class Window(QMainWindow):
         self.x_gas_input.setText('N2;0.78;O2;0.1;CO2;0.02;H2O;0.1')
         self.t_gas_out_input = QLineEdit()
         self.t_gas_out_input.setText('80')
-
         # Параметры охлаждающей среды:
         self.t_cool_input = QLineEdit()
         self.t_cool_input.setText('15')
@@ -42,7 +47,6 @@ class Window(QMainWindow):
         self.g_cool_input.setText('1000')
         self.x_cool_input = QLineEdit()
         self.x_cool_input.setText('WATER')
-
         # Параметры ОЦР:
         self.t_cond_input = QLineEdit()
         self.t_cond_input.setText('30')
@@ -85,25 +89,45 @@ class Window(QMainWindow):
 
         layout.addWidget(self.img, 0, 0)
         layout.addWidget(self.start_button, 3, 3)
-        layout.addWidget(self.kpd_output, 1, 3)
+        layout.addWidget(self.kpd_output, 2, 3)
+        layout.addWidget(self.time_lbl, 1, 3)
+        layout.addWidget(self.graph_balance, 0, 3)
+
+        calc_status = QHBoxLayout()
+        calc_status.addWidget(self.calc_status_img)
+        calc_status.addWidget(self.calc_status_text)
+        calc_status_container = QWidget()
+        calc_status_container.setLayout(calc_status)
+        layout.addWidget(calc_status_container)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
 
     def start(self):
-        print('def start')
-        self.calc_thread()
 
-    def calc_thread(self):
-        new_thread = Thread(target=self.calc)
-        new_thread.start()
+        self.calc_status_img.setText('...')
+        self.calc_status_text.setText('Запущен расчёт.')
+
+        self.time_flag = True
+        self.time_start = datetime.datetime.now()
+        thread_calc = Thread(target=self.calc)
+        thread_calc.start()
+
+        thread_timer = Thread(target=self.timer)
+        thread_timer.start()
+
+        self.ax = self.graph_balance.figure.subplots()
+        self.graph_balance.draw()
+
+    def timer(self):
+        while self.time_flag is True:
+            self.time_lbl.setText(f'Время расчёта: {(datetime.datetime.now()-self.time_start).seconds} с')
+            time.sleep(0.5)
 
     def calc(self):
-        print('run calc')
-
+        print('start calc')
         open_db()
-
         # Параметры нагревающей среды:
         X_gas = self.x_gas_input.text()
         T_gas = float(self.t_gas_input.text())
@@ -133,32 +157,46 @@ class Window(QMainWindow):
         write_stream('COND-PUMP', T_cond, prop.t_q(T_cond, 0, X_cond)["P"], prop.t_q(T_cond, 0, X_cond)["H"],
                      prop.t_q(T_cond, 0, X_cond)["S"], 0, 1000, X_cond)
 
+        self.balance_cumm = [0]
         for i in range(9999):
-            pump = modules.PUMP('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
+            pump = Pump('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-PUMP.png'))
             pump.calc()
 
-            heater = modules.HEATER('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out)
+            heater = Heat('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out)
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-HEAT.png'))
             heater.calc()
 
-            turbine = modules.TURBINE('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
+            turbine = Turb('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-TURB.png'))
             turbine.calc()
 
-            condenser = modules.CONDENSER('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond)
+            condenser = Cond('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond)
             self.img.setPixmap(QPixmap('qt/SIMPLE-CALC-COND.png'))
             condenser.calc()
 
             balance = (read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
                        read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
+
+            self.balance_cumm.append(balance)
+            self.ax.clear()
+            self.ax.plot(self.balance_cumm)
+            self.graph_balance.draw()
+            self.graph_balance.flush_events()
+
             if abs(balance) < cycle_tolerance:
                 break
 
         KPD = (read_block('TURBINE')["Q"] - read_block('PUMP')["Q"]) / read_block('HEATER')["Q"]
         self.kpd_output.setText(f"КПД равен {round(KPD,5)}%")
         close_db()
+        self.time_flag = False
 
+        self.calc_status_img.setText('+')
+        self.calc_status_text.setText('Расчёт завершён успешно.')
+
+
+        print('end calc')
 
 ##############################
 

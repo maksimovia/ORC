@@ -1,5 +1,5 @@
 from sqlite import open_db, close_db, write_stream, read_block, read_stream
-import modules
+from modules import Pump, Cond, Heat, Turb
 import prop
 
 open_db()
@@ -35,13 +35,13 @@ write_stream('COND-PUMP', T_cond, prop.t_q(T_cond, 0, X_cond)["P"], prop.t_q(T_c
              prop.t_q(T_cond, 0, X_cond)["S"], 0, 1000, X_cond)
 
 for i in range(9999):
-    pump = modules.PUMP('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
+    pump = Pump('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
     pump.calc()
-    heater = modules.HEATER('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out)
+    heater = Heat('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out)
     heater.calc()
-    turbine = modules.TURBINE('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turbine)
+    turbine = Turb('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turbine)
     turbine.calc()
-    condenser = modules.CONDENSER('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond)
+    condenser = Cond('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond)
     condenser.calc()
 
     balance = (read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -

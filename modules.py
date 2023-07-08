@@ -16,7 +16,7 @@ def root(func, a, b, root_tol):
     return x
 
 
-class HEATER:
+class Heat:
     def __init__(self, stream11, stream12, stream21, stream22, dt, t_out):
         self.stream11 = stream11
         self.stream12 = stream12
@@ -91,7 +91,7 @@ class HEATER:
         pass
 
 
-class PUMP:
+class Pump:
     def __init__(self, stream1, stream2, p_out, kpd_pump):
         self.stream1 = stream1
         self.stream2 = stream2
@@ -115,7 +115,7 @@ class PUMP:
         pass
 
 
-class TURBINE:
+class Turb:
     def __init__(self, stream1, stream2, p_out, kpd_turb):
         self.stream1 = stream1
         self.stream2 = stream2
@@ -138,7 +138,7 @@ class TURBINE:
         pass
 
 
-class CONDENSER:
+class Cond:
     def __init__(self, stream11, stream12, stream21, stream22, dt):
         self.stream11 = stream11
         self.stream12 = stream12
@@ -212,7 +212,7 @@ class CONDENSER:
         pass
 
 
-class REGEN:
+class Regen:
     def __init__(self, stream11, stream12, stream21, stream22, dt):
         self.stream11 = stream11
         self.stream12 = stream12
