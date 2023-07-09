@@ -1,5 +1,7 @@
+import sqlite3
+
+
 def open_db():
-    import sqlite3
     global connection
     global cursor
 
