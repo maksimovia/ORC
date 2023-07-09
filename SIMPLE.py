@@ -9,6 +9,7 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
+
 class Window(QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
@@ -22,7 +23,7 @@ class Window(QMainWindow):
 
         # ###############tab-1############### #
         self.img_input = QLabel(parent=self.tab1)
-        self.img_input.setPixmap(QPixmap('qt/ORC-SIMPLE.png'))
+        self.img_input.setPixmap(QPixmap('src/ORC-SIMPLE.png'))
         self.img_input.setGeometry(25, 25, 525, 525)
 
         self.t_gas_input = QLineEdit(parent=self.tab1)
@@ -132,11 +133,11 @@ class Window(QMainWindow):
 
         # ###############tab-2############### #
         self.img_calc = QLabel(parent=self.tab2)
-        self.img_calc.setPixmap(QPixmap('qt/ORC-SIMPLE.png'))
+        self.img_calc.setPixmap(QPixmap('src/ORC-SIMPLE.png'))
         self.img_calc.setGeometry(25, 25, 525, 525)
 
         self.img_calcer = QLabel(parent=self.tab2)
-        self.img_calcer.setPixmap(QPixmap('qt/calcer.png'))
+        self.img_calcer.setPixmap(QPixmap('src/calcer.png'))
         self.img_calcer.setGeometry(0, 0, 0, 0)
 
         self.graph_balance = FigureCanvasQTAgg(plt.Figure())
