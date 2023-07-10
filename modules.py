@@ -331,3 +331,32 @@ class Regen:
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
         write_block('REGEN', Q[-1], min_dt)
         pass
+    def TQ(self):
+        P11 = read_stream(self.stream11)['P']
+        H11 = read_stream(self.stream11)['H']
+        G1 = read_stream(self.stream11)['G']
+        fluid1 = read_stream(self.stream11)['X']
+        P21 = read_stream(self.stream21)['P']
+        H21 = read_stream(self.stream21)['H']
+        fluid2 = read_stream(self.stream21)['X']
+        H12 = read_stream(self.stream12)['H']
+        step = (H11 - H12) / self.h_steps
+        G2 = read_stream(self.stream21)['G']
+        t1 = np.zeros(self.h_steps + 1)
+        t2 = np.zeros(self.h_steps + 1)
+        Q = np.zeros(self.h_steps + 1)
+        h11 = H11
+        h21 = H21
+        for i in range(self.h_steps + 1):
+            t1[i] = prop.h_p(h11, P11, fluid1)["T"]
+            if i < self.h_steps:
+                h12 = h11 - step
+                dQ = G1 * (h11 - h12)
+                h11 = h12
+                Q[i + 1] = Q[i] + dQ
+        for i in range(self.h_steps + 1):
+            t2[self.h_steps - i] = prop.h_p(h21, P21, fluid2)["T"]
+            if i < self.h_steps:
+                h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
+                h21 = h22
+        return Q, t1, t2
