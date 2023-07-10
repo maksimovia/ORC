@@ -22,7 +22,7 @@ def open_db():
         cursor.execute('''CREATE TABLE IF NOT EXISTS blocks
         (NAME TEXT DEFAULT NULL,
         Q REAL DEFAULT NULL,
-        KPD REAL DEFAULT NULL)''')
+        dT REAL DEFAULT NULL)''')
 
         cursor.execute('''INSERT INTO streams(NAME) VALUES
         ('IN-HEAT'),
@@ -64,14 +64,15 @@ def write_stream(stream, t, p, h, s, q, g, x):
     pass
 
 
-def write_block(block, q):
-    cursor.execute('''UPDATE blocks SET Q=? WHERE NAME==? ''', [q, block])
+def write_block(block, q, dt):
+    cursor.execute('''UPDATE blocks SET Q=?, DT=? WHERE NAME==? ''', [q, dt, block])
     pass
 
 
 def read_block(block):
     q = cursor.execute('''SELECT Q FROM blocks WHERE NAME==? ''', [block]).fetchone()
-    return {'Q': q[0]}
+    dt = cursor.execute('''SELECT DT FROM blocks WHERE NAME==? ''', [block]).fetchone()
+    return {'Q': q[0],'DT': dt[0]}
 
 
 def read_stream(stream):

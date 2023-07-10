@@ -80,13 +80,16 @@ class Heat:
             if i < self.h_steps:
                 h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
                 h21 = h22
+        DT = t1 - t2
+        min_dt = min(DT)
         T22 = t2[0]
         H22 = prop.t_p(T22, P21, fluid2)["H"]
         S22 = prop.t_p(T22, P21, fluid2)["S"]
         Q22 = prop.t_p(T22, P21, fluid2)["Q"]
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
-        write_block('HEATER', Q[-1])
+        write_block('HEATER', Q[-1], min_dt)
+
         pass
 
     def TQ(self):
@@ -139,7 +142,7 @@ class Pump:
         Q2 = prop.h_p(H2, self.p_out, fluid)["Q"]
         write_stream(self.stream2, T2, self.p_out, H2, S2, Q2, G, fluid)
         N = G * (H2 - H1)
-        write_block('PUMP', N)
+        write_block('PUMP', N, 0)
         pass
 
 
@@ -162,7 +165,7 @@ class Turb:
         Q2 = prop.h_p(H2, self.p_out, fluid)["Q"]
         write_stream(self.stream2, T2, self.p_out, H2, S2, Q2, G, fluid)
         N = G * (H1 - H2)
-        write_block('TURBINE', N)
+        write_block('TURBINE', N, 0)
         pass
 
 
@@ -226,6 +229,8 @@ class Cond:
             if i < self.h_steps:
                 h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
                 h21 = h22
+        DT = t1 - t2
+        min_dt = min(DT)
         T22 = t2[0]
         H22 = prop.t_p(T22, P2, fluid2)["H"]
         S22 = prop.t_p(T22, P2, fluid2)["S"]
@@ -238,7 +243,7 @@ class Cond:
         write_stream(self.stream12, T12, P1, H12, S12, 0, G1, fluid1)
         write_stream(self.stream21, T21, P2, H21, S21, Q21, G2, fluid2)
         write_stream(self.stream22, T22, P2, H22, S22, Q22, G2, fluid2)
-        write_block('CONDENSER', Q[-1])
+        write_block('CONDENSER', Q[-1], min_dt)
         pass
 
     def TQ(self):
@@ -312,6 +317,8 @@ class Regen:
             if i < self.h_steps:
                 h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
                 h21 = h22
+        DT = t1 - t2
+        min_dt = min(DT)
         T22 = t2[0]
         T12 = t1[-1]
         H12 = prop.t_p(T12, P11, fluid1)["H"]
@@ -322,5 +329,5 @@ class Regen:
         Q22 = prop.t_p(T22, P21, fluid2)["Q"]
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
-        write_block('REGEN', Q[-1])
+        write_block('REGEN', Q[-1], min_dt)
         pass
