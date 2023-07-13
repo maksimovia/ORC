@@ -21,6 +21,7 @@ def resource_path(relative):
 #######################################################################################
 
 def root(func, a, b, root_tol):
+    x = 10000
     while abs(func(a) - func(b)) > root_tol:
         x = a + (b - a) / 2
         if func(a) * func(x) < 0:
