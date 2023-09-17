@@ -5,7 +5,7 @@ def open_db():
     global connection
     global cursor
 
-    connection = sqlite3.connect('data.db')
+    connection = sqlite3.connect(':memory:')
     cursor = connection.cursor()
 
     if cursor.execute('''SELECT name FROM sqlite_master WHERE type='table' AND name='streams' ''').fetchone() is None:
