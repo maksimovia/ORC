@@ -46,7 +46,6 @@ def open_db():
         ('HEATER'),
         ('REGEN')
         ''')
-    print('open DB')
     pass
 
 
@@ -54,7 +53,6 @@ def close_db():
     connection.commit()
     cursor.close()
     connection.close()
-    print('close DB')
     pass
 
 
