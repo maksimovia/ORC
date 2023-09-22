@@ -62,6 +62,12 @@ def write_stream(stream, t, p, h, s, q, g, x):
     pass
 
 
+def write_stream_one(stream, value):
+    cursor.execute('''UPDATE streams SET G=? WHERE NAME==? ''',
+                   [value, stream])
+    pass
+
+
 def write_block(block, q, dt):
     cursor.execute('''UPDATE blocks SET Q=?, DT=? WHERE NAME==? ''', [q, dt, block])
     pass

@@ -148,7 +148,7 @@ class Window(QMainWindow):
 
         self.fluid_input = QLineEdit(parent=self.tab1)
         self.fluid_input.setGeometry(600, 200, 180, 25)
-        self.fluid_input.setText('R236EA')
+        self.fluid_input.setText('R124')
         self.fluid_input_txt = QLabel('Теплоноситель:', parent=self.tab1)
         self.fluid_input_txt.setGeometry(600, 175, 180, 25)
 
@@ -316,9 +316,9 @@ class Window(QMainWindow):
         self.stop_button.clicked.connect(self.stop)
         self.stop_button.setGeometry(600, 425, 180, 25)
 
-        self.stop_optimus_button = QPushButton("Пропуск итерации", parent=self.tab2)
-        self.stop_optimus_button.clicked.connect(self.skip_iter)
-        self.stop_optimus_button.setGeometry(600, 475, 180, 25)
+        self.skip_optimus_button = QPushButton("Пропуск итерации", parent=self.tab2)
+        self.skip_optimus_button.clicked.connect(self.skip_iter)
+        self.skip_optimus_button.setGeometry(600, 475, 180, 25)
         # ###############tab-2-end############### #
 
         # ###############tab-3############### #
@@ -429,22 +429,23 @@ class Window(QMainWindow):
         self.stop_optimus_button.clicked.connect(self.stop)
         self.stop_optimus_button.setGeometry(60, 400, 175, 25)
 
-        self.stop_optimus_button = QPushButton("Пропуск итерации", parent=self.tab5)
-        self.stop_optimus_button.clicked.connect(self.skip_iter)
-        self.stop_optimus_button.setGeometry(60, 450, 175, 25)
+        self.skip_optimus_button = QPushButton("Пропуск итерации", parent=self.tab5)
+        self.skip_optimus_button.clicked.connect(self.skip_iter)
+        self.skip_optimus_button.setGeometry(60, 450, 175, 25)
 
         self.optimus_table = QTableWidget(parent=self.tab5)
         self.optimus_table.setGeometry(425, 50, 341, 400)
-        self.optimus_table.setColumnCount(5)
+        self.optimus_table.setColumnCount(6)
         self.optimus_table.setRowCount(15)
-        self.optimus_table.setHorizontalHeaderLabels(["X", "P", "KPD", "Q1", "Q2"])
+        self.optimus_table.setHorizontalHeaderLabels(["X", "P", "KPD", "Q1", "Q2", "DTreg"])
         self.optimus_table.setColumnWidth(0, 50)
         self.optimus_table.setColumnWidth(1, 50)
         self.optimus_table.setColumnWidth(2, 50)
         self.optimus_table.setColumnWidth(3, 50)
         self.optimus_table.setColumnWidth(4, 50)
+        self.optimus_table.setColumnWidth(5, 50)
         self.optimus_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.optimus_table.customContextMenuRequested.connect(self.contextMenuEvent)
+        self.optimus_table.customContextMenuRequested.connect(self.contextMenuev)
         # ###############tab-5-end############### #
 
         # ###############central-tab############### #
@@ -471,7 +472,7 @@ class Window(QMainWindow):
         print('skip')
         self.opt_iter_Flag = False
 
-    def contextMenuEvent(self, pos):
+    def contextMenuev(self, pos):
         context_menu = QMenu(self)
         action1 = context_menu.addAction("Копировать")
         action1.triggered.connect(self.context_menu_copy)
@@ -524,8 +525,8 @@ class Window(QMainWindow):
         self.opt_iter_Flag = True
         self.thread_calc = Thread(target=self.calc_optimus)
         self.thread_calc.start()
-        self.thread_timer = Thread(target=self.timer)
-        self.thread_timer.start()
+        # self.thread_timer = Thread(target=self.timer)
+        # self.thread_timer.start()
 
     def calc_optimus(self):
         fluid_list = []
@@ -542,6 +543,8 @@ class Window(QMainWindow):
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(' '))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(' '))
                 self.optimus_table.setItem(i, 4, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 5, QTableWidgetItem(' '))
+
                 i = i + 1
         if self.optimus_table.rowCount() > 29:
             for i in range(15):
@@ -557,12 +560,14 @@ class Window(QMainWindow):
                     self.optimus_table.item(i - 1, 2).setBackground(QColor(255, 255, 255))
                     self.optimus_table.item(i - 1, 3).setBackground(QColor(255, 255, 255))
                     self.optimus_table.item(i - 1, 4).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i - 1, 5).setBackground(QColor(255, 255, 255))
 
                 self.optimus_table.item(i, 0).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 1).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 2).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 3).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 4).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 5).setBackground(QColor(0, 204, 102))
 
                 self.opt_iter_Flag = True
                 open_db()
@@ -643,7 +648,7 @@ class Window(QMainWindow):
                             f'G = {round(float(read_stream("REGEN-HEAT")["G"]), tolerance_exp)}')
                         self.calc_REGEN_Q.setText(f'Q = 0')
                     else:
-                        regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen,
+                        regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, dt_heat,
                                             root_tolerance, h_steps)
                         # self.img_calcer.setGeometry(205, 273, 100, 100)
                         regenerator.calc()
@@ -684,8 +689,7 @@ class Window(QMainWindow):
                     self.calc_TURB_REGEN_G.setText(f'G = {round(float(read_stream("TURB-REGEN")["G"]), tolerance_exp)}')
                     self.calc_TURB_REGEN_Q.setText(f'Q = {round(float(read_stream("TURB-REGEN")["Q"]), tolerance_exp)}')
                     self.calc_TURB_N.setText(f'N = {round(float(read_block("TURBINE")["Q"]), tolerance_exp)}')
-
-                    regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen,
+                    regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, dt_heat,
                                         root_tolerance, h_steps)
                     # self.img_calcer.setGeometry(205, 273, 100, 100)
                     regenerator.calc()
@@ -695,6 +699,7 @@ class Window(QMainWindow):
                     self.calc_REGEN_HEAT_T.setText(f'T = {round(float(read_stream("REGEN-HEAT")["T"]), tolerance_exp)}')
                     self.calc_REGEN_HEAT_P.setText(f'P = {round(float(read_stream("REGEN-HEAT")["P"]), tolerance_exp)}')
                     self.calc_REGEN_HEAT_G.setText(f'G = {round(float(read_stream("REGEN-HEAT")["G"]), tolerance_exp)}')
+
                     self.calc_REGEN_Q.setText(f'Q = {round(float(read_block("REGEN")["Q"]), tolerance_exp)}')
                     self.calc_REGEN_DT.setText(f'ΔT = {round(float(read_block("REGEN")["DT"]), tolerance_exp)}')
 
@@ -710,7 +715,6 @@ class Window(QMainWindow):
                     self.calc_COND_Q.setText(f'Q = {round(float(read_block("CONDENSER")["Q"]), tolerance_exp)}')
                     self.calc_COND_DT.setText(f'ΔT = {round(float(read_block("CONDENSER")["DT"]), tolerance_exp)}')
                     self.calc_IN_COND_G.setText(f'G = {round(float(read_stream("COND-OUT")["G"]), tolerance_exp)}')
-
                     balance = abs(read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
                                   read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
                     self.calc_balance.setText(f"Δ = {balance}")
@@ -728,11 +732,49 @@ class Window(QMainWindow):
                     if balance < cycle_tolerance:
                         break
 
+                for i in range(10):
+                    stream = list(read_stream(str(self.streams_list[i])).values())
+                    for j in range(6):
+                        value = str(round(stream[j], tolerance_exp))
+                        self.table_streams.setItem(i, j + 1, QTableWidgetItem(value))
+                    self.table_streams.setItem(i, 7, QTableWidgetItem(str(stream[6])))
+                for i in range(5):
+                    value = round(list(read_block(str(self.block_list[i])).values())[0], tolerance_exp)
+                    self.table_blocks.setItem(i, 1, QTableWidgetItem(str(value)))
+                    value = round(list(read_block(str(self.block_list[i])).values())[1], tolerance_exp)
+                    self.table_blocks.setItem(i, 2, QTableWidgetItem(str(value)))
+                ##
+                self.tq_heat_ax.clear()
+                self.tq_heat_ax.grid(True)
+                self.tq_heat_ax.set_title('Утилизатор')
+                self.tq_heat_ax.set_xlabel('Q, кВт')
+                self.tq_heat_ax.set_ylabel('T, °C')
+                self.tq_heat_ax.plot(heater.TQ()[0], heater.TQ()[2], heater.TQ()[0], heater.TQ()[1])
+                self.graph_tq_heat.draw()
+
+                self.tq_regen_ax.clear()
+                self.tq_regen_ax.grid(True)
+                self.tq_regen_ax.set_title('Регенератор')
+                self.tq_regen_ax.set_xlabel('Q, кВт')
+                self.tq_regen_ax.set_ylabel('T, °C')
+                self.tq_regen_ax.plot(regenerator.TQ()[0], regenerator.TQ()[2], regenerator.TQ()[0],
+                                      regenerator.TQ()[1])
+                self.graph_tq_regen.draw()
+
+                self.tq_cond_ax.clear()
+                self.tq_cond_ax.grid(True)
+                self.tq_cond_ax.set_title('Конденсатор')
+                self.tq_cond_ax.set_xlabel('Q, кВт')
+                self.tq_cond_ax.set_ylabel('T, °C')
+                self.tq_cond_ax.plot(condenser.TQ()[0], condenser.TQ()[2], condenser.TQ()[0], condenser.TQ()[1])
+                self.graph_tq_cond.draw()
+
                 if self.opt_iter_Flag is False:
                     self.kpd_output.setText("Итерация пропущена")
                     self.optimus_table.setItem(i, 2, QTableWidgetItem(str('-')))
                     self.optimus_table.setItem(i, 3, QTableWidgetItem(str('-')))
                     self.optimus_table.setItem(i, 4, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 5, QTableWidgetItem(str('-')))
                     i = i + 1
                     close_db()
                     continue
@@ -745,12 +787,15 @@ class Window(QMainWindow):
                     str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
                 self.optimus_table.setItem(i, 4, QTableWidgetItem(
                     str(round(float(read_stream("TURB-REGEN")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 5, QTableWidgetItem(
+                    str(round(float(read_block("REGEN")["DT"]), tolerance_exp))))
+
                 self.optimus_table.item(i, 2).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 3).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 4).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 5).setBackground(QColor(0, 204, 102))
 
                 i = i + 1
-                close_db()
 
         # self.img_calcer.setGeometry(0, 0, 0, 0)
         self.time_flag = False
@@ -776,7 +821,6 @@ class Window(QMainWindow):
         self.graph_balance.draw()
         self.graph_balance.flush_events()
 
-        print('start')
         self.status_img.setText('⏳')
         self.status_txt.setText('Запущен расчёт')
         self.kpd_output.setText(" ")
@@ -788,8 +832,8 @@ class Window(QMainWindow):
         self.thread_calc = Thread(target=self.calc)
         self.thread_calc.start()
 
-        self.thread_timer = Thread(target=self.timer)
-        self.thread_timer.start()
+        # self.thread_timer = Thread(target=self.timer)
+        # self.thread_timer.start()
 
     def stop(self):
         print('stop')
@@ -800,10 +844,12 @@ class Window(QMainWindow):
             self.status_img.setText('🛑')
             self.status_txt.setText('Расчёт остановлен')
 
+
     def timer(self):
         while self.time_flag is True:
             self.status_time.setText(f'Время расчёта: {(datetime.datetime.now() - self.time_start).seconds} с')
             time.sleep(0.5)
+
 
     def calc(self):
         print('start calc')
@@ -879,10 +925,11 @@ class Window(QMainWindow):
                 self.calc_REGEN_HEAT_G.setText(f'G = {round(float(read_stream("REGEN-HEAT")["G"]), tolerance_exp)}')
                 self.calc_REGEN_Q.setText(f'Q = 0')
             else:
-                regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, root_tolerance,
+                regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen,  dt_heat, root_tolerance,
                                     h_steps)
                 # self.img_calcer.setGeometry(205, 273, 100, 100)
                 regenerator.calc()
+
                 self.calc_REGEN_COND_T.setText(f'T = {round(float(read_stream("REGEN-COND")["T"]), tolerance_exp)}')
                 self.calc_REGEN_COND_P.setText(f'P = {round(float(read_stream("REGEN-COND")["P"]), tolerance_exp)}')
                 self.calc_REGEN_COND_G.setText(f'G = {round(float(read_stream("REGEN-COND")["G"]), tolerance_exp)}')
@@ -913,8 +960,7 @@ class Window(QMainWindow):
             self.calc_TURB_REGEN_G.setText(f'G = {round(float(read_stream("TURB-REGEN")["G"]), tolerance_exp)}')
             self.calc_TURB_REGEN_Q.setText(f'Q = {round(float(read_stream("TURB-REGEN")["Q"]), tolerance_exp)}')
             self.calc_TURB_N.setText(f'N = {round(float(read_block("TURBINE")["Q"]), tolerance_exp)}')
-
-            regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, root_tolerance,
+            regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, dt_heat, root_tolerance,
                                 h_steps)
             # self.img_calcer.setGeometry(205, 273, 100, 100)
             regenerator.calc()
@@ -1008,8 +1054,6 @@ class Window(QMainWindow):
             self.status_txt.setText('Расчёт остановлен')
 
         print('end calc')
-
-
 ##############################
 
 

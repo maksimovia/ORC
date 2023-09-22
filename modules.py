@@ -1,5 +1,5 @@
 import prop
-from sqlite import read_stream, write_stream, write_block
+from sqlite import read_stream, write_stream, write_block, write_stream_one
 import numpy as np
 
 
@@ -59,7 +59,7 @@ class Heat:
                     h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
                     h21 = h22
             DT = t1 - t2
-            min_dt = min(DT)
+            min_dt = min(DT[:-1])
             return self.dT - min_dt
 
         G2 = root(G2_func, 1, 10000, self.root_tolerance)
@@ -80,6 +80,7 @@ class Heat:
             if i < self.h_steps:
                 h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
                 h21 = h22
+
         DT = t1 - t2
         min_dt = min(DT)
         T22 = t2[0]
@@ -89,6 +90,13 @@ class Heat:
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
         write_block('HEATER', Q[-1], min_dt)
+
+        # write_stream_one('PUMP-REGEN',G2)
+        # write_stream_one('REGEN-HEAT',G2)
+        # write_stream_one('HEAT-TURB',G2)
+        # write_stream_one('TURB-REGEN',G2)
+        # write_stream_one('REGEN-COND',G2)
+        # write_stream_one('COND-PUMP',G2)
 
         pass
 
@@ -211,7 +219,7 @@ class Cond:
             DT = t1 - t2
             min_dt = min(DT)
             return self.dt - min_dt
-        G2 = root(G2_func, 100, 100000, self.root_tolerance)
+        G2 = root(G2_func, 100, 10000, self.root_tolerance)
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -278,18 +286,20 @@ class Cond:
 
 
 class Regen:
-    def __init__(self, stream11, stream12, stream21, stream22, dt, root_tolerance, h_steps):
+    def __init__(self, stream11, stream12, stream21, stream22, dt, dtheat, root_tolerance, h_steps):
         self.stream11 = stream11
         self.stream12 = stream12
         self.stream21 = stream21
         self.stream22 = stream22
         self.dt = dt
+        self.dtheat = dtheat
         self.root_tolerance = root_tolerance
         self.h_steps = int(h_steps)
 
     def calc(self):
         P11 = read_stream(self.stream11)['P']
         H11 = read_stream(self.stream11)['H']
+        T11 = read_stream(self.stream11)['T']
         G1 = read_stream(self.stream11)['G']
         fluid1 = read_stream(self.stream11)['X']
         T21 = read_stream(self.stream21)['T']
@@ -297,6 +307,7 @@ class Regen:
         H21 = read_stream(self.stream21)['H']
         G2 = read_stream(self.stream21)['G']
         fluid2 = read_stream(self.stream21)['X']
+
         T12 = T21 + self.dt
         H12 = prop.t_p(T12, P11, fluid1)["H"]
         t1 = np.zeros(self.h_steps + 1)
@@ -321,12 +332,52 @@ class Regen:
         min_dt = min(DT)
         T22 = t2[0]
         T12 = t1[-1]
+        ######!!!!!!!!!!!!!!!!!!!!
+        if read_stream('HEAT-OUT')['T']-T22 < self.dtheat:
+            T22 = min(read_stream("HEAT-OUT")["T"] - self.dtheat, T11-self.dt)
+            H22 = prop.t_p(T22, P21, fluid2)["H"]
+            t1 = np.zeros(self.h_steps + 1)
+            t2 = np.zeros(self.h_steps + 1)
+            Q = np.zeros(self.h_steps + 1)
+            h11 = H11
+            h21 = H21
+            step = (H22 - H21) / self.h_steps
+            for i in range(self.h_steps + 1):
+                t2[i] = prop.h_p(h21, P21, fluid2)["T"]
+                if i < self.h_steps:
+                    h22 = h21 + step
+                    dQ = G2 * (h22 - h21)
+                    h21 = h22
+                    Q[i + 1] = Q[i] + dQ
+            for i in range(self.h_steps + 1):
+                t1[self.h_steps - i] = prop.h_p(h11, P11, fluid1)["T"]
+                if i < self.h_steps:
+                    h12 = h11 - (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G1
+                    h11 = h12
+            DT = t1 - t2
+            min_dt = min(DT)
+            T22 = t2[-1]
+            T12 = t1[0]
+
         H12 = prop.t_p(T12, P11, fluid1)["H"]
         S12 = prop.t_p(T12, P11, fluid1)["S"]
         Q12 = prop.t_p(T12, P11, fluid1)["Q"]
         H22 = prop.t_p(T22, P21, fluid2)["H"]
         S22 = prop.t_p(T22, P21, fluid2)["S"]
         Q22 = prop.t_p(T22, P21, fluid2)["Q"]
+
+        if T11 < T21:
+            T22 = T21
+            T12 = T11
+            Q[-1] = 0
+            min_dt = min(T12-T21, T11-T22)
+            H12 = H11
+            S12 = prop.t_p(T11, P11, fluid1)["S"]
+            Q12 = prop.t_p(T11, P11, fluid1)["Q"]
+            H22 = H21
+            S22 = prop.t_p(T21, P21, fluid2)["S"]
+            Q22 = prop.t_p(T21, P21, fluid2)["Q"]
+
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
         write_block('REGEN', Q[-1], min_dt)
