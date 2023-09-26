@@ -11,6 +11,7 @@ import datetime
 import time
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+import sys
 
 
 class Window(QMainWindow):
@@ -154,7 +155,7 @@ class Window(QMainWindow):
 
         self.cycle_tolerance_input = QLineEdit(parent=self.tab1)
         self.cycle_tolerance_input.setGeometry(600, 250, 180, 25)
-        self.cycle_tolerance_input.setText('10**-4')
+        self.cycle_tolerance_input.setText('10**-6')
         self.cycle_tolerance_input_txt = QLabel('Сходимость по балансу:', parent=self.tab1)
         self.cycle_tolerance_input_txt.setGeometry(600, 225, 180, 25)
 
@@ -280,18 +281,17 @@ class Window(QMainWindow):
         self.calc_REGEN_DT = QLabel('ΔT = ?', parent=self.tab2)
         self.calc_REGEN_DT.setGeometry(290, 300, 100, 20)
 
-        # ########### - цифры
-
         # self.img_calcer = QLabel(parent=self.tab2)
         # self.img_calcer.setPixmap(QPixmap('src/calcer.png'))
-        # self.img_calcer.setGeometry(0, 0, 0, 0)
 
         self.graph_balance = FigureCanvasQTAgg(plt.Figure(dpi=75))
         self.balance_ax = self.graph_balance.figure.subplots()
         self.balance_ax.grid(True)
-        self.balance_ax.set_title('Невязка по балансу')
+        self.balance_ax.set_title('Тепловой баланс')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
+        self.balance_ax.set_ylim([float(eval(self.cycle_tolerance_root.text())) / 10, 1])
+        self.balance_ax.axhline(float(eval(self.cycle_tolerance_root.text())), color='red', linestyle='--')
         self.graph_balance.draw()
         self.graph_balance_cont = QWidget(parent=self.tab2)
         graph_balance_lay = QHBoxLayout()
@@ -507,12 +507,16 @@ class Window(QMainWindow):
     def optimus_start(self):
         print('start opt')
         self.balance_ax.clear()
-        self.balance_ax.set_title('Невязка по балансу')
+        self.balance_ax.set_title('Тепловой баланс')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
+
         self.balance_ax.grid(True)
         self.balance_cumm = []
         self.balance_ax.plot(self.balance_cumm)
+        self.balance_ax.set_ylim([float(eval(self.cycle_tolerance_root.text())) / 10, 1])
+        self.balance_ax.axhline(float(eval(self.cycle_tolerance_root.text())), color='red', linestyle='--')
+
         self.graph_balance.draw()
         self.graph_balance.flush_events()
 
@@ -525,8 +529,8 @@ class Window(QMainWindow):
         self.opt_iter_Flag = True
         self.thread_calc = Thread(target=self.calc_optimus)
         self.thread_calc.start()
-        # self.thread_timer = Thread(target=self.timer)
-        # self.thread_timer.start()
+        self.thread_timer = Thread(target=self.timer)
+        self.thread_timer.start()
 
     def calc_optimus(self):
         fluid_list = []
@@ -546,9 +550,6 @@ class Window(QMainWindow):
                 self.optimus_table.setItem(i, 5, QTableWidgetItem(' '))
 
                 i = i + 1
-        if self.optimus_table.rowCount() > 29:
-            for i in range(15):
-                self.optimus_table.removeRow(self.optimus_table.rowCount() - 1)
         i = 0
         for X_cond in fluid_list:
             for p_pump in np.arange(float(self.opt_pmin.text()),
@@ -627,7 +628,6 @@ class Window(QMainWindow):
                         break
 
                     pump = Pump('COND-PUMP', 'PUMP-REGEN', p_pump, kpd_pump)
-                    # self.img_calcer.setGeometry(165, 370, 100, 100)
                     pump.calc()
                     self.calc_PUMP_REGEN_T.setText(f'T = {round(float(read_stream("PUMP-REGEN")["T"]), tolerance_exp)}')
                     self.calc_PUMP_REGEN_P.setText(f'P = {round(float(read_stream("PUMP-REGEN")["P"]), tolerance_exp)}')
@@ -635,7 +635,6 @@ class Window(QMainWindow):
                     self.calc_PUMP_N.setText(f'N = {round(float(read_block("PUMP")["Q"]), tolerance_exp)}')
 
                     if j == 0:
-                        # self.img_calcer.setGeometry(205, 273, 100, 100)
                         write_stream('REGEN-HEAT', read_stream('PUMP-REGEN')["T"], read_stream('PUMP-REGEN')["P"],
                                      read_stream('PUMP-REGEN')["H"], read_stream('PUMP-REGEN')["S"],
                                      read_stream('PUMP-REGEN')["Q"], read_stream('PUMP-REGEN')["G"],
@@ -650,7 +649,6 @@ class Window(QMainWindow):
                     else:
                         regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, dt_heat,
                                             root_tolerance, h_steps)
-                        # self.img_calcer.setGeometry(205, 273, 100, 100)
                         regenerator.calc()
                         self.calc_REGEN_COND_T.setText(
                             f'T = {round(float(read_stream("REGEN-COND")["T"]), tolerance_exp)}')
@@ -669,7 +667,6 @@ class Window(QMainWindow):
 
                     heater = Heat('IN-HEAT', 'HEAT-OUT', 'REGEN-HEAT', 'HEAT-TURB', dt_heat, T_gas_out, root_tolerance,
                                   h_steps)
-                    # self.img_calcer.setGeometry(70, 135, 100, 100)
                     heater.calc()
                     self.calc_HEAT_OUT_T.setText(f'T = {round(float(read_stream("HEAT-OUT")["T"]), tolerance_exp)}')
                     self.calc_HEAT_OUT_P.setText(f'P = {round(float(read_stream("HEAT-OUT")["P"]), tolerance_exp)}')
@@ -682,7 +679,6 @@ class Window(QMainWindow):
                     self.calc_HEAT_DT.setText(f'ΔT = {round(float(read_block("HEATER")["DT"]), tolerance_exp)}')
 
                     turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
-                    # self.img_calcer.setGeometry(315, 127, 100, 100)
                     turbine.calc()
                     self.calc_TURB_REGEN_T.setText(f'T = {round(float(read_stream("TURB-REGEN")["T"]), tolerance_exp)}')
                     self.calc_TURB_REGEN_P.setText(f'P = {round(float(read_stream("TURB-REGEN")["P"]), tolerance_exp)}')
@@ -691,7 +687,6 @@ class Window(QMainWindow):
                     self.calc_TURB_N.setText(f'N = {round(float(read_block("TURBINE")["Q"]), tolerance_exp)}')
                     regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, dt_heat,
                                         root_tolerance, h_steps)
-                    # self.img_calcer.setGeometry(205, 273, 100, 100)
                     regenerator.calc()
                     self.calc_REGEN_COND_T.setText(f'T = {round(float(read_stream("REGEN-COND")["T"]), tolerance_exp)}')
                     self.calc_REGEN_COND_P.setText(f'P = {round(float(read_stream("REGEN-COND")["P"]), tolerance_exp)}')
@@ -704,7 +699,6 @@ class Window(QMainWindow):
                     self.calc_REGEN_DT.setText(f'ΔT = {round(float(read_block("REGEN")["DT"]), tolerance_exp)}')
 
                     condenser = Cond('REGEN-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond, root_tolerance, h_steps)
-                    # self.img_calcer.setGeometry(350, 380, 100, 100)
                     condenser.calc()
                     self.calc_COND_PUMP_T.setText(f'T = {round(float(read_stream("COND-PUMP")["T"]), tolerance_exp)}')
                     self.calc_COND_PUMP_P.setText(f'P = {round(float(read_stream("COND-PUMP")["P"]), tolerance_exp)}')
@@ -720,11 +714,12 @@ class Window(QMainWindow):
                     self.calc_balance.setText(f"Δ = {balance}")
                     self.balance_cumm.append(balance)
                     self.balance_ax.clear()
-                    self.balance_ax.set_title('Невязка по балансу')
+                    self.balance_ax.set_title('Тепловой баланс')
                     self.balance_ax.set_xlabel('Итерация')
-                    self.balance_ax.set_ylim(cycle_tolerance / 10)
+                    self.balance_ax.set_ylim([cycle_tolerance / 10,1])
                     self.balance_ax.semilogy()
                     self.balance_ax.plot(self.balance_cumm)
+                    self.balance_ax.axhline(cycle_tolerance, color='red', linestyle='--')
                     self.balance_ax.grid(True)
                     self.graph_balance.draw()
                     self.graph_balance.flush_events()
@@ -732,17 +727,6 @@ class Window(QMainWindow):
                     if balance < cycle_tolerance:
                         break
 
-                for i in range(10):
-                    stream = list(read_stream(str(self.streams_list[i])).values())
-                    for j in range(6):
-                        value = str(round(stream[j], tolerance_exp))
-                        self.table_streams.setItem(i, j + 1, QTableWidgetItem(value))
-                    self.table_streams.setItem(i, 7, QTableWidgetItem(str(stream[6])))
-                for i in range(5):
-                    value = round(list(read_block(str(self.block_list[i])).values())[0], tolerance_exp)
-                    self.table_blocks.setItem(i, 1, QTableWidgetItem(str(value)))
-                    value = round(list(read_block(str(self.block_list[i])).values())[1], tolerance_exp)
-                    self.table_blocks.setItem(i, 2, QTableWidgetItem(str(value)))
                 ##
                 self.tq_heat_ax.clear()
                 self.tq_heat_ax.grid(True)
@@ -769,6 +753,18 @@ class Window(QMainWindow):
                 self.tq_cond_ax.plot(condenser.TQ()[0], condenser.TQ()[2], condenser.TQ()[0], condenser.TQ()[1])
                 self.graph_tq_cond.draw()
 
+                for k in range(10):
+                    stream = list(read_stream(str(self.streams_list[k])).values())
+                    for j in range(6):
+                        value = str(round(stream[j], tolerance_exp))
+                        self.table_streams.setItem(k, j + 1, QTableWidgetItem(value))
+                    self.table_streams.setItem(k, 7, QTableWidgetItem(str(stream[6])))
+                for k in range(5):
+                    value = round(list(read_block(str(self.block_list[k])).values())[0], tolerance_exp)
+                    self.table_blocks.setItem(k, 1, QTableWidgetItem(str(value)))
+                    value = round(list(read_block(str(self.block_list[k])).values())[1], tolerance_exp)
+                    self.table_blocks.setItem(k, 2, QTableWidgetItem(str(value)))
+
                 if self.opt_iter_Flag is False:
                     self.kpd_output.setText("Итерация пропущена")
                     self.optimus_table.setItem(i, 2, QTableWidgetItem(str('-')))
@@ -781,6 +777,8 @@ class Window(QMainWindow):
 
                 KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
                     "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
+
+                print(X_cond,p_pump,KPD,read_stream("HEAT-TURB")["Q"],read_stream("TURB-REGEN")["Q"],read_block("REGEN")["DT"])
                 self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(
@@ -794,10 +792,7 @@ class Window(QMainWindow):
                 self.optimus_table.item(i, 3).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 4).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 5).setBackground(QColor(0, 204, 102))
-
                 i = i + 1
-
-        # self.img_calcer.setGeometry(0, 0, 0, 0)
         self.time_flag = False
         if self.calc_Flag is True:
             self.status_img.setText('✔️')
@@ -811,13 +806,15 @@ class Window(QMainWindow):
     def start(self):
         self.tab_menu.setCurrentIndex(1)
         self.balance_ax.clear()
-        self.balance_ax.set_title('Невязка по балансу')
+        self.balance_ax.set_title('Тепловой баланс')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
 
         self.balance_ax.grid(True)
         self.balance_cumm = []
         self.balance_ax.plot(self.balance_cumm)
+        self.balance_ax.set_ylim([float(eval(self.cycle_tolerance_root.text())) / 10, 1])
+        self.balance_ax.axhline(float(eval(self.cycle_tolerance_root.text())), color='red', linestyle='--')
         self.graph_balance.draw()
         self.graph_balance.flush_events()
 
@@ -832,8 +829,8 @@ class Window(QMainWindow):
         self.thread_calc = Thread(target=self.calc)
         self.thread_calc.start()
 
-        # self.thread_timer = Thread(target=self.timer)
-        # self.thread_timer.start()
+        self.thread_timer = Thread(target=self.timer)
+        self.thread_timer.start()
 
     def stop(self):
         print('stop')
@@ -848,7 +845,7 @@ class Window(QMainWindow):
     def timer(self):
         while self.time_flag is True:
             self.status_time.setText(f'Время расчёта: {(datetime.datetime.now() - self.time_start).seconds} с')
-            time.sleep(0.5)
+            time.sleep(0.9)
 
 
     def calc(self):
@@ -907,7 +904,6 @@ class Window(QMainWindow):
                 break
 
             pump = Pump('COND-PUMP', 'PUMP-REGEN', p_pump, kpd_pump)
-            # self.img_calcer.setGeometry(165, 440, 100, 100)
             pump.calc()
             self.calc_PUMP_REGEN_T.setText(f'T = {round(float(read_stream("PUMP-REGEN")["T"]), tolerance_exp)}')
             self.calc_PUMP_REGEN_P.setText(f'P = {round(float(read_stream("PUMP-REGEN")["P"]), tolerance_exp)}')
@@ -915,7 +911,6 @@ class Window(QMainWindow):
             self.calc_PUMP_N.setText(f'N = {round(float(read_block("PUMP")["Q"]), tolerance_exp)}')
 
             if j == 0:
-                # self.img_calcer.setGeometry(205, 273, 100, 100)
                 write_stream('REGEN-HEAT', read_stream('PUMP-REGEN')["T"], read_stream('PUMP-REGEN')["P"],
                              read_stream('PUMP-REGEN')["H"], read_stream('PUMP-REGEN')["S"],
                              read_stream('PUMP-REGEN')["Q"], read_stream('PUMP-REGEN')["G"],
@@ -927,7 +922,6 @@ class Window(QMainWindow):
             else:
                 regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen,  dt_heat, root_tolerance,
                                     h_steps)
-                # self.img_calcer.setGeometry(205, 273, 100, 100)
                 regenerator.calc()
 
                 self.calc_REGEN_COND_T.setText(f'T = {round(float(read_stream("REGEN-COND")["T"]), tolerance_exp)}')
@@ -940,7 +934,6 @@ class Window(QMainWindow):
                 self.calc_REGEN_DT.setText(f'ΔT = {round(float(read_block("REGEN")["DT"]), tolerance_exp)}')
 
             heater = Heat('IN-HEAT', 'HEAT-OUT', 'REGEN-HEAT', 'HEAT-TURB', dt_heat, T_gas_out, root_tolerance, h_steps)
-            # self.img_calcer.setGeometry(70, 135, 100, 100)
             heater.calc()
             self.calc_HEAT_OUT_T.setText(f'T = {round(float(read_stream("HEAT-OUT")["T"]), tolerance_exp)}')
             self.calc_HEAT_OUT_P.setText(f'P = {round(float(read_stream("HEAT-OUT")["P"]), tolerance_exp)}')
@@ -953,7 +946,6 @@ class Window(QMainWindow):
             self.calc_HEAT_DT.setText(f'ΔT = {round(float(read_block("HEATER")["DT"]), tolerance_exp)}')
 
             turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
-            # self.img_calcer.setGeometry(315, 127, 100, 100)
             turbine.calc()
             self.calc_TURB_REGEN_T.setText(f'T = {round(float(read_stream("TURB-REGEN")["T"]), tolerance_exp)}')
             self.calc_TURB_REGEN_P.setText(f'P = {round(float(read_stream("TURB-REGEN")["P"]), tolerance_exp)}')
@@ -962,7 +954,6 @@ class Window(QMainWindow):
             self.calc_TURB_N.setText(f'N = {round(float(read_block("TURBINE")["Q"]), tolerance_exp)}')
             regenerator = Regen('TURB-REGEN', 'REGEN-COND', 'PUMP-REGEN', 'REGEN-HEAT', dt_regen, dt_heat, root_tolerance,
                                 h_steps)
-            # self.img_calcer.setGeometry(205, 273, 100, 100)
             regenerator.calc()
             self.calc_REGEN_COND_T.setText(f'T = {round(float(read_stream("REGEN-COND")["T"]), tolerance_exp)}')
             self.calc_REGEN_COND_P.setText(f'P = {round(float(read_stream("REGEN-COND")["P"]), tolerance_exp)}')
@@ -974,7 +965,6 @@ class Window(QMainWindow):
             self.calc_REGEN_DT.setText(f'ΔT = {round(float(read_block("REGEN")["DT"]), tolerance_exp)}')
 
             condenser = Cond('REGEN-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond, root_tolerance, h_steps)
-            # self.img_calcer.setGeometry(350, 380, 100, 100)
             condenser.calc()
             self.calc_COND_PUMP_T.setText(f'T = {round(float(read_stream("COND-PUMP")["T"]), tolerance_exp)}')
             self.calc_COND_PUMP_P.setText(f'P = {round(float(read_stream("COND-PUMP")["P"]), tolerance_exp)}')
@@ -991,11 +981,13 @@ class Window(QMainWindow):
             self.calc_balance.setText(f"Δ = {balance}")
             self.balance_cumm.append(balance)
             self.balance_ax.clear()
-            self.balance_ax.set_title('Невязка по балансу')
+            self.balance_ax.set_title('Тепловой баланс')
             self.balance_ax.set_xlabel('Итерация')
             self.balance_ax.semilogy()
-            self.balance_ax.set_ylim(cycle_tolerance / 10)
+            self.balance_ax.set_ylim([cycle_tolerance / 10,1])
             self.balance_ax.plot(self.balance_cumm)
+            self.balance_ax.axhline(cycle_tolerance, color='red', linestyle='--')
+
             self.balance_ax.grid(True)
             self.graph_balance.draw()
             self.graph_balance.flush_events()
@@ -1004,6 +996,7 @@ class Window(QMainWindow):
                 break
         KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
             "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
+        print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"],read_block("REGEN")["DT"])
         self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
 
         for i in range(10):
@@ -1041,10 +1034,7 @@ class Window(QMainWindow):
         self.tq_cond_ax.set_ylabel('T, °C')
         self.tq_cond_ax.plot(condenser.TQ()[0], condenser.TQ()[2], condenser.TQ()[0], condenser.TQ()[1])
         self.graph_tq_cond.draw()
-        ##
-
         close_db()
-        # self.img_calcer.setGeometry(0, 0, 0, 0)
         self.time_flag = False
         if self.calc_Flag is True:
             self.status_img.setText('✔️')
@@ -1057,7 +1047,7 @@ class Window(QMainWindow):
 ##############################
 
 
-app = QApplication([])
+app = QApplication(sys.argv)
 window = Window()
 window.show()
 app.exec()

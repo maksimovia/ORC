@@ -32,12 +32,10 @@ class Heat:
         P21 = read_stream(self.stream21)['P']
         H21 = read_stream(self.stream21)['H']
         fluid2 = read_stream(self.stream21)['X']
-
         T12 = self.T_out
         H12 = prop.t_p(T12, P11, fluid1)["H"]
         S12 = prop.t_p(T12, P11, fluid1)["S"]
         Q12 = prop.t_p(T12, P11, fluid1)["Q"]
-
         step = (H11 - H12) / self.h_steps
 
         def G2_func(G2):
@@ -61,8 +59,8 @@ class Heat:
             DT = t1 - t2
             min_dt = min(DT[:-1])
             return self.dT - min_dt
-
-        G2 = root(G2_func, 1, 10000, self.root_tolerance)
+        G2 = root(G2_func, 10, 10000, self.root_tolerance)
+        G2 = (G2 + read_stream('REGEN-HEAT')['G'])/2   ###Обратная связь для релаксации
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -80,7 +78,6 @@ class Heat:
             if i < self.h_steps:
                 h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
                 h21 = h22
-
         DT = t1 - t2
         min_dt = min(DT)
         T22 = t2[0]
@@ -90,14 +87,6 @@ class Heat:
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
         write_block('HEATER', Q[-1], min_dt)
-
-        # write_stream_one('PUMP-REGEN',G2)
-        # write_stream_one('REGEN-HEAT',G2)
-        # write_stream_one('HEAT-TURB',G2)
-        # write_stream_one('TURB-REGEN',G2)
-        # write_stream_one('REGEN-COND',G2)
-        # write_stream_one('COND-PUMP',G2)
-
         pass
 
     def TQ(self):
@@ -307,7 +296,6 @@ class Regen:
         H21 = read_stream(self.stream21)['H']
         G2 = read_stream(self.stream21)['G']
         fluid2 = read_stream(self.stream21)['X']
-
         T12 = T21 + self.dt
         H12 = prop.t_p(T12, P11, fluid1)["H"]
         t1 = np.zeros(self.h_steps + 1)
@@ -332,7 +320,6 @@ class Regen:
         min_dt = min(DT)
         T22 = t2[0]
         T12 = t1[-1]
-        ######!!!!!!!!!!!!!!!!!!!!
         if read_stream('HEAT-OUT')['T']-T22 < self.dtheat:
             T22 = min(read_stream("HEAT-OUT")["T"] - self.dtheat, T11-self.dt)
             H22 = prop.t_p(T22, P21, fluid2)["H"]
@@ -358,14 +345,12 @@ class Regen:
             min_dt = min(DT)
             T22 = t2[-1]
             T12 = t1[0]
-
         H12 = prop.t_p(T12, P11, fluid1)["H"]
         S12 = prop.t_p(T12, P11, fluid1)["S"]
         Q12 = prop.t_p(T12, P11, fluid1)["Q"]
         H22 = prop.t_p(T22, P21, fluid2)["H"]
         S22 = prop.t_p(T22, P21, fluid2)["S"]
         Q22 = prop.t_p(T22, P21, fluid2)["Q"]
-
         if T11 < T21:
             T22 = T21
             T12 = T11
@@ -377,11 +362,11 @@ class Regen:
             H22 = H21
             S22 = prop.t_p(T21, P21, fluid2)["S"]
             Q22 = prop.t_p(T21, P21, fluid2)["Q"]
-
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
         write_block('REGEN', Q[-1], min_dt)
         pass
+
     def TQ(self):
         P11 = read_stream(self.stream11)['P']
         H11 = read_stream(self.stream11)['H']
