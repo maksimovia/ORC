@@ -60,7 +60,8 @@ class Heat:
             min_dt = min(DT[:-1])
             return self.dT - min_dt
         G2 = root(G2_func, 10, 10000, self.root_tolerance)
-        G2 = (G2 + read_stream('REGEN-HEAT')['G'])/2   ###Обратная связь для релаксации
+        if read_stream('REGEN-HEAT')['G'] is not None:
+            G2 = (G2 + read_stream('REGEN-HEAT')['G'])/2   ###Обратная связь
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -78,6 +79,10 @@ class Heat:
             if i < self.h_steps:
                 h22 = h21 + (Q[self.h_steps - i] - Q[self.h_steps - i - 1]) / G2
                 h21 = h22
+
+        # for i in range(self.h_steps + 1):
+        #     print(t1[i],t2[i],Q[i])
+
         DT = t1 - t2
         min_dt = min(DT)
         T22 = t2[0]

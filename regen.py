@@ -149,7 +149,7 @@ class Window(QMainWindow):
 
         self.fluid_input = QLineEdit(parent=self.tab1)
         self.fluid_input.setGeometry(600, 200, 180, 25)
-        self.fluid_input.setText('R124')
+        self.fluid_input.setText('R236ea')
         self.fluid_input_txt = QLabel('Теплоноситель:', parent=self.tab1)
         self.fluid_input_txt.setGeometry(600, 175, 180, 25)
 

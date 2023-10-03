@@ -257,9 +257,8 @@ class Window(QMainWindow):
 
         # ########### - цифры
 
-        self.img_calcer = QLabel(parent=self.tab2)
-        self.img_calcer.setPixmap(QPixmap('src/calcer.png'))
-        self.img_calcer.setGeometry(0, 0, 0, 0)
+        # self.img_calcer = QLabel(parent=self.tab2)
+        # self.img_calcer.setPixmap(QPixmap('src/calcer.png'))
 
         self.graph_balance = FigureCanvasQTAgg(plt.Figure(dpi=75))
         self.balance_ax = self.graph_balance.figure.subplots()
@@ -474,6 +473,8 @@ class Window(QMainWindow):
         self.balance_ax.set_title('Невязка по балансу')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
+        self.balance_ax.set_ylim([float(eval(self.cycle_tolerance_root.text())) / 10, 1])
+        self.balance_ax.axhline(float(eval(self.cycle_tolerance_root.text())), color='red', linestyle='--')
         self.balance_ax.grid(True)
         self.balance_cumm = []
         self.balance_ax.plot(self.balance_cumm)
@@ -583,7 +584,7 @@ class Window(QMainWindow):
                         break
 
                     pump = Pump('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
-                    self.img_calcer.setGeometry(165, 370, 100, 100)
+                    # self.img_calcer.setGeometry(165, 370, 100, 100)
                     pump.calc()
                     self.calc_PUMP_HEAT_T.setText(f'T = {round(float(read_stream("PUMP-HEAT")["T"]), tolerance_exp)}')
                     self.calc_PUMP_HEAT_P.setText(f'P = {round(float(read_stream("PUMP-HEAT")["P"]), tolerance_exp)}')
@@ -591,7 +592,7 @@ class Window(QMainWindow):
                     self.calc_PUMP_N.setText(f'N = {round(float(read_block("PUMP")["Q"]), tolerance_exp)}')
 
                     heater = Heat('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out, root_tolerance, h_steps)
-                    self.img_calcer.setGeometry(68, 162, 100, 100)
+                    # self.img_calcer.setGeometry(68, 162, 100, 100)
                     heater.calc()
                     self.calc_HEAT_OUT_T.setText(f'T = {round(float(read_stream("HEAT-OUT")["T"]), tolerance_exp)}')
                     self.calc_HEAT_OUT_P.setText(f'P = {round(float(read_stream("HEAT-OUT")["P"]), tolerance_exp)}')
@@ -604,7 +605,7 @@ class Window(QMainWindow):
                     self.calc_HEAT_DT.setText(f'ΔT = {round(float(read_block("HEATER")["DT"]), tolerance_exp)}')
 
                     turbine = Turb('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
-                    self.img_calcer.setGeometry(315, 145, 100, 100)
+                    # self.img_calcer.setGeometry(315, 145, 100, 100)
                     turbine.calc()
                     self.calc_TURB_COND_T.setText(f'T = {round(float(read_stream("TURB-COND")["T"]), tolerance_exp)}')
                     self.calc_TURB_COND_P.setText(f'P = {round(float(read_stream("TURB-COND")["P"]), tolerance_exp)}')
@@ -613,7 +614,7 @@ class Window(QMainWindow):
                     self.calc_TURB_N.setText(f'N = {round(float(read_block("TURBINE")["Q"]), tolerance_exp)}')
 
                     condenser = Cond('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond, root_tolerance, h_steps)
-                    self.img_calcer.setGeometry(360, 310, 100, 100)
+                    # self.img_calcer.setGeometry(360, 310, 100, 100)
                     condenser.calc()
                     self.calc_COND_PUMP_T.setText(f'T = {round(float(read_stream("COND-PUMP")["T"]), tolerance_exp)}')
                     self.calc_COND_PUMP_P.setText(f'P = {round(float(read_stream("COND-PUMP")["P"]), tolerance_exp)}')
@@ -632,8 +633,9 @@ class Window(QMainWindow):
                     self.balance_ax.clear()
                     self.balance_ax.set_title('Невязка по балансу')
                     self.balance_ax.set_xlabel('Итерация')
-                    self.balance_ax.set_ylim(cycle_tolerance/10)
+                    self.balance_ax.set_ylim([cycle_tolerance/10,1])
                     self.balance_ax.semilogy()
+                    self.balance_ax.axhline(cycle_tolerance, color='red', linestyle='--')
                     self.balance_ax.plot(self.balance_cumm)
                     self.balance_ax.grid(True)
                     self.graph_balance.draw()
@@ -652,6 +654,7 @@ class Window(QMainWindow):
                     continue
 
                 KPD = (read_block('TURBINE')["Q"]*kpd_turb_m*kpd_turb_e - read_block('PUMP')["Q"]*kpd_pump_e*kpd_pump_e) / read_block('HEATER')["Q"]
+                print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
                 self.kpd_output.setText(str(round(KPD, tolerance_exp+2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
@@ -663,7 +666,7 @@ class Window(QMainWindow):
                 i = i + 1
                 close_db()
 
-        self.img_calcer.setGeometry(0, 0, 0, 0)
+        # self.img_calcer.setGeometry(0, 0, 0, 0)
         self.time_flag = False
         if self.calc_Flag is True:
             self.status_img.setText('✔️')
@@ -681,6 +684,8 @@ class Window(QMainWindow):
         self.balance_ax.set_title('Невязка по балансу')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
+        self.balance_ax.set_ylim([float(eval(self.cycle_tolerance_root.text())) / 10, 1])
+        self.balance_ax.axhline(float(eval(self.cycle_tolerance_root.text())), color='red', linestyle='--')
 
         self.balance_ax.grid(True)
         self.balance_cumm = []
@@ -767,7 +772,7 @@ class Window(QMainWindow):
                 break
 
             pump = Pump('COND-PUMP', 'PUMP-HEAT', p_pump, kpd_pump)
-            self.img_calcer.setGeometry(165, 370, 100, 100)
+            # self.img_calcer.setGeometry(165, 370, 100, 100)
             pump.calc()
             self.calc_PUMP_HEAT_T.setText(f'T = {round(float(read_stream("PUMP-HEAT")["T"]), tolerance_exp)}')
             self.calc_PUMP_HEAT_P.setText(f'P = {round(float(read_stream("PUMP-HEAT")["P"]), tolerance_exp)}')
@@ -775,7 +780,7 @@ class Window(QMainWindow):
             self.calc_PUMP_N.setText(f'N = {round(float(read_block("PUMP")["Q"]), tolerance_exp)}')
 
             heater = Heat('IN-HEAT', 'HEAT-OUT', 'PUMP-HEAT', 'HEAT-TURB', dt_heat, T_gas_out, root_tolerance, h_steps)
-            self.img_calcer.setGeometry(68, 162, 100, 100)
+            # self.img_calcer.setGeometry(68, 162, 100, 100)
             heater.calc()
             self.calc_HEAT_OUT_T.setText(f'T = {round(float(read_stream("HEAT-OUT")["T"]), tolerance_exp)}')
             self.calc_HEAT_OUT_P.setText(f'P = {round(float(read_stream("HEAT-OUT")["P"]), tolerance_exp)}')
@@ -789,7 +794,7 @@ class Window(QMainWindow):
             self.calc_HEAT_DT.setText(f'ΔT = {round(float(read_block("HEATER")["DT"]), tolerance_exp)}')
 
             turbine = Turb('HEAT-TURB', 'TURB-COND', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
-            self.img_calcer.setGeometry(315, 145, 100, 100)
+            # self.img_calcer.setGeometry(315, 145, 100, 100)
             turbine.calc()
             self.calc_TURB_COND_T.setText(f'T = {round(float(read_stream("TURB-COND")["T"]), tolerance_exp)}')
             self.calc_TURB_COND_P.setText(f'P = {round(float(read_stream("TURB-COND")["P"]), tolerance_exp)}')
@@ -798,7 +803,7 @@ class Window(QMainWindow):
             self.calc_TURB_N.setText(f'N = {round(float(read_block("TURBINE")["Q"]), tolerance_exp)}')
 
             condenser = Cond('TURB-COND', 'COND-PUMP', 'IN-COND', 'COND-OUT', dt_cond, root_tolerance, h_steps)
-            self.img_calcer.setGeometry(360, 310, 100, 100)
+            # self.img_calcer.setGeometry(360, 310, 100, 100)
             condenser.calc()
             self.calc_COND_PUMP_T.setText(f'T = {round(float(read_stream("COND-PUMP")["T"]), tolerance_exp)}')
             self.calc_COND_PUMP_P.setText(f'P = {round(float(read_stream("COND-PUMP")["P"]), tolerance_exp)}')
@@ -818,7 +823,8 @@ class Window(QMainWindow):
             self.balance_ax.set_title('Невязка по балансу')
             self.balance_ax.set_xlabel('Итерация')
             self.balance_ax.semilogy()
-            self.balance_ax.set_ylim(cycle_tolerance/10)
+            self.balance_ax.set_ylim([cycle_tolerance/10,1])
+            self.balance_ax.axhline(cycle_tolerance, color='red', linestyle='--')
             self.balance_ax.plot(self.balance_cumm)
             self.balance_ax.grid(True)
             self.graph_balance.draw()
@@ -828,6 +834,7 @@ class Window(QMainWindow):
                 break
 
         KPD = (read_block('TURBINE')["Q"] - read_block('PUMP')["Q"]) / read_block('HEATER')["Q"]
+        print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
         self.kpd_output.setText(str(round(KPD, tolerance_exp+2)))
 
         for i in range(8):
@@ -860,7 +867,7 @@ class Window(QMainWindow):
         ##
 
         close_db()
-        self.img_calcer.setGeometry(0, 0, 0, 0)
+        # self.img_calcer.setGeometry(0, 0, 0, 0)
         self.time_flag = False
         if self.calc_Flag is True:
             self.status_img.setText('✔️')
