@@ -385,7 +385,6 @@ class Window(QMainWindow):
         # ###############tab-4-end############### #
 
         # ###############tab-5############### #
-
         self.opt_fluid_txt = QLabel('Список теплоносителей:', parent=self.tab5)
         self.opt_fluid_txt.setGeometry(50, 10, 180, 25)
         self.opt_fluid_txt = QLabel('Доступно:', parent=self.tab5)
