@@ -776,8 +776,7 @@ class Window(QMainWindow):
 
                 KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
                     "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-
-                print(X_cond,p_pump,KPD,read_stream("HEAT-TURB")["Q"],read_stream("TURB-REGEN")["Q"],read_block("REGEN")["DT"])
+                print(X_cond, round(p_pump, tolerance_exp + 2), round(KPD, tolerance_exp + 2), round(read_stream("HEAT-TURB")["Q"], tolerance_exp + 2), round(read_stream("TURB-REGEN")["Q"], tolerance_exp + 2), round(read_block("REGEN")["DT"], tolerance_exp + 2))
                 self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(
@@ -994,7 +993,10 @@ class Window(QMainWindow):
                 break
         KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
             "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-        print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"],read_block("REGEN")["DT"])
+        print(X_cond, round(p_pump, tolerance_exp + 2), round(KPD, tolerance_exp + 2),
+              round(read_stream("HEAT-TURB")["Q"], tolerance_exp + 2),
+              round(read_stream("TURB-REGEN")["Q"], tolerance_exp + 2),
+              round(read_block("REGEN")["DT"], tolerance_exp + 2))
         self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
 
         for i in range(10):
