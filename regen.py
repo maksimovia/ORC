@@ -1,7 +1,7 @@
-from PyQt6.QtCore import QMimeData, Qt
-from PyQt6.QtWidgets import QLabel, QLineEdit, QWidget, QMainWindow, QPushButton, QHBoxLayout, QTableWidget, \
+from PySide6.QtCore import QMimeData, Qt
+from PySide6.QtWidgets import QLabel, QLineEdit, QWidget, QMainWindow, QPushButton, QHBoxLayout, QTableWidget, \
     QTabWidget, QStatusBar, QTableWidgetItem, QApplication, QListWidget, QMenu
-from PyQt6.QtGui import QPixmap, QIcon, QCursor, QColor
+from PySide6.QtGui import QPixmap, QIcon, QCursor, QColor
 from sqlite import open_db, close_db, read_block, write_stream, read_stream
 from modules import Pump, Heat, Cond, Turb, Regen
 import numpy as np
@@ -840,12 +840,11 @@ class Window(QMainWindow):
             self.status_img.setText('🛑')
             self.status_txt.setText('Расчёт остановлен')
 
-
     def timer(self):
         while self.time_flag is True:
             self.status_time.setText(f'Время расчёта: {(datetime.datetime.now() - self.time_start).seconds} с')
-            time.sleep(0.9)
-
+            self.update()
+            time.sleep(0.5)
 
     def calc(self):
         print('start calc')

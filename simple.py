@@ -1,7 +1,7 @@
-from PyQt6.QtCore import QMimeData, Qt
-from PyQt6.QtWidgets import QLabel, QLineEdit, QWidget, QMainWindow, QPushButton, QHBoxLayout, QTableWidget, \
+from PySide6.QtCore import QMimeData, Qt
+from PySide6.QtWidgets import QLabel, QLineEdit, QWidget, QMainWindow, QPushButton, QHBoxLayout, QTableWidget, \
     QTabWidget, QStatusBar, QTableWidgetItem, QApplication, QListWidget, QMenu
-from PyQt6.QtGui import QPixmap, QIcon, QAction, QCursor, QKeySequence, QBrush, QColor
+from PySide6.QtGui import QPixmap, QIcon, QCursor, QColor
 from sqlite import open_db, close_db, read_block, write_stream, read_stream
 from modules import Pump, Heat, Cond, Turb
 import numpy as np
@@ -148,7 +148,7 @@ class Window(QMainWindow):
 
         self.cycle_tolerance_input = QLineEdit(parent=self.tab1)
         self.cycle_tolerance_input.setGeometry(600, 250, 180, 25)
-        self.cycle_tolerance_input.setText('10**-4')
+        self.cycle_tolerance_input.setText('10**-6')
         self.cycle_tolerance_input_txt = QLabel('Сходимость по балансу:', parent=self.tab1)
         self.cycle_tolerance_input_txt.setGeometry(600, 225, 180, 25)
 
@@ -369,19 +369,19 @@ class Window(QMainWindow):
         self.opt_pmin_txt.setGeometry(50, 75+100, 180, 25)
         self.opt_pmin = QLineEdit(parent=self.tab5)
         self.opt_pmin.setGeometry(50, 100+100, 180, 25)
-        self.opt_pmin.setText('0')
+        self.opt_pmin.setText('3')
 
         self.opt_pmax_txt = QLabel('Конечное давление:', parent=self.tab5)
         self.opt_pmax_txt.setGeometry(50, 125+100, 180, 25)
         self.opt_pmax = QLineEdit(parent=self.tab5)
         self.opt_pmax.setGeometry(50, 150+100, 180, 25)
-        self.opt_pmax.setText('0')
+        self.opt_pmax.setText('10')
 
         self.opt_pstep_txt = QLabel('Шаг изменения давления:', parent=self.tab5)
         self.opt_pstep_txt.setGeometry(50, 175+100, 180, 25)
         self.opt_pstep = QLineEdit(parent=self.tab5)
         self.opt_pstep.setGeometry(50, 200+100, 180, 25)
-        self.opt_pstep.setText('0')
+        self.opt_pstep.setText('0.1')
 
         self.start_optimus_button = QPushButton("го", parent=self.tab5)
         self.start_optimus_button.clicked.connect(self.optimus_start)
@@ -720,6 +720,7 @@ class Window(QMainWindow):
     def timer(self):
         while self.time_flag is True:
             self.status_time.setText(f'Время расчёта: {(datetime.datetime.now() - self.time_start).seconds} с')
+            self.update()
             time.sleep(0.5)
 
     def calc(self):

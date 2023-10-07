@@ -3,13 +3,19 @@ from sqlite import read_stream, write_stream, write_block, write_stream_one
 import numpy as np
 
 
+# def root(func, a, b, root_tol):
+#     while abs(func(a) - func(b)) > root_tol:
+#         x = a + (b - a) / 2
+#         if func(a) * func(x) < 0:
+#             b = x
+#         else:
+#             a = x
+#     return x
+
+
+from scipy import optimize
 def root(func, a, b, root_tol):
-    while abs(func(a) - func(b)) > root_tol:
-        x = a + (b - a) / 2
-        if func(a) * func(x) < 0:
-            b = x
-        else:
-            a = x
+    x = float(optimize.root(func, a, tol=root_tol).x)
     return x
 
 
@@ -61,8 +67,8 @@ class Heat:
             return self.dT - min_dt
         G2 = root(G2_func, 10, 10000, self.root_tolerance)
 
-        if read_stream('REGEN-HEAT')['G'] is not None:
-            G2 = (G2 + read_stream('REGEN-HEAT')['G'])/2   ###Обратная связь
+        # if read_stream('REGEN-HEAT')['G'] is not None:
+        #     G2 = (G2 + read_stream('REGEN-HEAT')['G'])/2   ###Обратная связь
 
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
