@@ -1,20 +1,10 @@
 import prop
-from sqlite import read_stream, write_stream, write_block, write_stream_one
+from sqlite import read_stream, write_stream, write_block
 import numpy as np
-
-
-# def root(func, a, b, root_tol):
-#     while abs(func(a) - func(b)) > root_tol:
-#         x = a + (b - a) / 2
-#         if func(a) * func(x) < 0:
-#             b = x
-#         else:
-#             a = x
-#     return x
-
-
 from scipy import optimize
-def root(func, a, b, root_tol):
+
+
+def root(func, a, root_tol):
     x = float(optimize.root(func, a, tol=root_tol).x)
     return x
 
@@ -65,11 +55,8 @@ class Heat:
             DT = t1 - t2
             min_dt = min(DT[:-1])
             return self.dT - min_dt
-        G2 = root(G2_func, 10, 10000, self.root_tolerance)
 
-        # if read_stream('REGEN-HEAT')['G'] is not None:
-        #     G2 = (G2 + read_stream('REGEN-HEAT')['G'])/2   ###Обратная связь
-
+        G2 = root(G2_func, 100, self.root_tolerance)
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -218,7 +205,7 @@ class Cond:
             DT = t1 - t2
             min_dt = min(DT)
             return self.dt - min_dt
-        G2 = root(G2_func, 100, 10000, self.root_tolerance)
+        G2 = root(G2_func, 100, self.root_tolerance)
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -345,7 +332,7 @@ class Regen:
             S22 = prop.h_p(H21, P21, fluid2)["S"]
             Q22 = prop.h_p(H21, P21, fluid2)["Q"]
         else:
-            T22 = root(T22_func, T21, read_stream("HEAT-OUT")["T"] - self.dtheat, self.root_tolerance)
+            T22 = root(T22_func, T21, self.root_tolerance)
             H22 = prop.t_p(T22, P21, fluid2)["H"]
             t1 = np.zeros(self.h_steps + 1)
             t2 = np.zeros(self.h_steps + 1)

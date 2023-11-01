@@ -34,25 +34,25 @@ class Window(QMainWindow):
 
         self.t_gas_input = QLineEdit(parent=self.tab1)
         self.t_gas_input.setGeometry(50, 60, 50, 20)
-        self.t_gas_input.setText('183.6')
+        self.t_gas_input.setText('250')
         self.t_gas_txt = QLabel('T =', parent=self.tab1)
         self.t_gas_txt.setGeometry(30, 60, 20, 20)
 
         self.p_gas_input = QLineEdit(parent=self.tab1)
         self.p_gas_input.setGeometry(50, 80, 50, 20)
-        self.p_gas_input.setText('0.1')
+        self.p_gas_input.setText('16')
         self.p_gas_txt = QLabel('P =', parent=self.tab1)
         self.p_gas_txt.setGeometry(30, 80, 20, 20)
 
         self.g_gas_input = QLineEdit(parent=self.tab1)
         self.g_gas_input.setGeometry(50, 100, 50, 20)
-        self.g_gas_input.setText('509')
+        self.g_gas_input.setText('1000')
         self.g_gas_txt = QLabel('G =', parent=self.tab1)
         self.g_gas_txt.setGeometry(30, 100, 20, 20)
 
         self.t_gas_out_input = QLineEdit(parent=self.tab1)
         self.t_gas_out_input.setGeometry(50, 300, 50, 20)
-        self.t_gas_out_input.setText('80')
+        self.t_gas_out_input.setText('240')
         self.t_gas_out_input_txt = QLabel('T =', parent=self.tab1)
         self.t_gas_out_input_txt.setGeometry(30, 300, 20, 20)
 
@@ -130,7 +130,7 @@ class Window(QMainWindow):
 
         self.x_gas_input = QLineEdit(parent=self.tab1)
         self.x_gas_input.setGeometry(600, 100, 180, 25)
-        self.x_gas_input.setText('N2;0.7798;O2;0.1226;CO2;0.0305;H2O;0.0605;AR;0.0066')
+        self.x_gas_input.setText('WATER')
         self.x_gas_input_txt = QLabel('Состав нагревающего потока:', parent=self.tab1)
         self.x_gas_input_txt.setGeometry(600, 75, 180, 25)
 
@@ -148,13 +148,13 @@ class Window(QMainWindow):
 
         self.cycle_tolerance_input = QLineEdit(parent=self.tab1)
         self.cycle_tolerance_input.setGeometry(600, 250, 180, 25)
-        self.cycle_tolerance_input.setText('10**-6')
+        self.cycle_tolerance_input.setText('10**-5')
         self.cycle_tolerance_input_txt = QLabel('Сходимость по балансу:', parent=self.tab1)
         self.cycle_tolerance_input_txt.setGeometry(600, 225, 180, 25)
 
         self.cycle_tolerance_root = QLineEdit(parent=self.tab1)
         self.cycle_tolerance_root.setGeometry(600, 300, 180, 25)
-        self.cycle_tolerance_root.setText('10**-6')
+        self.cycle_tolerance_root.setText('10**-5')
         self.cycle_tolerance_root_txt = QLabel('Точность поиска корней:', parent=self.tab1)
         self.cycle_tolerance_root_txt.setGeometry(600, 275, 180, 25)
 
@@ -263,7 +263,7 @@ class Window(QMainWindow):
         self.graph_balance = FigureCanvasQTAgg(plt.Figure(dpi=75))
         self.balance_ax = self.graph_balance.figure.subplots()
         self.balance_ax.grid(True)
-        self.balance_ax.set_title('Невязка по балансу')
+        self.balance_ax.set_title('Тепловой баланс')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
         self.graph_balance.draw()
@@ -355,7 +355,7 @@ class Window(QMainWindow):
         self.opt_fluid_txt.setGeometry(50, 25, 180, 25)
         self.opt_fluid = QListWidget(parent=self.tab5)
         self.opt_fluid.setGeometry(50, 50, 100, 125)
-        self.opt_fluid.addItems(['R236ea','R123','R124','R134a','R11','R601','R600','R717','R22','R124','R41','R12' ,'CO2', 'WATER'])
+        self.opt_fluid.addItems(['R236ea', 'R123', 'R124', 'R134a', 'Isobutane', 'R717', 'R245fa', 'R22', 'R41', 'R12', 'R32', 'CO2', 'WATER'])
         self.opt_fluid.itemDoubleClicked.connect(self.fluid_clicked)
 
         self.opt_fluid_txt = QLabel('Выбрано:', parent=self.tab5)
@@ -375,13 +375,13 @@ class Window(QMainWindow):
         self.opt_pmax_txt.setGeometry(50, 125+100, 180, 25)
         self.opt_pmax = QLineEdit(parent=self.tab5)
         self.opt_pmax.setGeometry(50, 150+100, 180, 25)
-        self.opt_pmax.setText('10')
+        self.opt_pmax.setText('35')
 
         self.opt_pstep_txt = QLabel('Шаг изменения давления:', parent=self.tab5)
         self.opt_pstep_txt.setGeometry(50, 175+100, 180, 25)
         self.opt_pstep = QLineEdit(parent=self.tab5)
         self.opt_pstep.setGeometry(50, 200+100, 180, 25)
-        self.opt_pstep.setText('0.1')
+        self.opt_pstep.setText('1')
 
         self.start_optimus_button = QPushButton("го", parent=self.tab5)
         self.start_optimus_button.clicked.connect(self.optimus_start)
@@ -470,7 +470,7 @@ class Window(QMainWindow):
     def optimus_start(self):
         print('start opt')
         self.balance_ax.clear()
-        self.balance_ax.set_title('Невязка по балансу')
+        self.balance_ax.set_title('Тепловой баланс')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
         self.balance_ax.set_ylim([float(eval(self.cycle_tolerance_root.text())) / 10, 1])
@@ -631,7 +631,7 @@ class Window(QMainWindow):
                     self.calc_balance.setText(f"Δ = {balance}")
                     self.balance_cumm.append(balance)
                     self.balance_ax.clear()
-                    self.balance_ax.set_title('Невязка по балансу')
+                    self.balance_ax.set_title('Тепловой баланс')
                     self.balance_ax.set_xlabel('Итерация')
                     self.balance_ax.set_ylim([cycle_tolerance/10,1])
                     self.balance_ax.semilogy()
@@ -654,7 +654,7 @@ class Window(QMainWindow):
                     continue
 
                 KPD = (read_block('TURBINE')["Q"]*kpd_turb_m*kpd_turb_e - read_block('PUMP')["Q"]*kpd_pump_e*kpd_pump_e) / read_block('HEATER')["Q"]
-                print(X_cond, round(p_pump, tolerance_exp + 2), round(KPD, tolerance_exp + 2), read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
+                print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
                 self.kpd_output.setText(str(round(KPD, tolerance_exp+2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
@@ -681,7 +681,7 @@ class Window(QMainWindow):
     def start(self):
         self.tab_menu.setCurrentIndex(1)
         self.balance_ax.clear()
-        self.balance_ax.set_title('Невязка по балансу')
+        self.balance_ax.set_title('Тепловой баланс')
         self.balance_ax.set_xlabel('Итерация')
         self.balance_ax.semilogy()
         self.balance_ax.set_ylim([float(eval(self.cycle_tolerance_root.text())) / 10, 1])
@@ -720,7 +720,6 @@ class Window(QMainWindow):
     def timer(self):
         while self.time_flag is True:
             self.status_time.setText(f'Время расчёта: {(datetime.datetime.now() - self.time_start).seconds} с')
-            self.update()
             time.sleep(0.5)
 
     def calc(self):
@@ -821,7 +820,7 @@ class Window(QMainWindow):
             self.calc_balance.setText(f"Δ = {balance}")
             self.balance_cumm.append(balance)
             self.balance_ax.clear()
-            self.balance_ax.set_title('Невязка по балансу')
+            self.balance_ax.set_title('Тепловой баланс')
             self.balance_ax.set_xlabel('Итерация')
             self.balance_ax.semilogy()
             self.balance_ax.set_ylim([cycle_tolerance/10,1])
@@ -835,8 +834,7 @@ class Window(QMainWindow):
                 break
 
         KPD = (read_block('TURBINE')["Q"] - read_block('PUMP')["Q"]) / read_block('HEATER')["Q"]
-        print(X_cond, round(p_pump, tolerance_exp + 2), round(KPD, tolerance_exp + 2), read_stream("HEAT-TURB")["Q"],
-              read_stream("TURB-COND")["Q"])
+        print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
         self.kpd_output.setText(str(round(KPD, tolerance_exp+2)))
 
         for i in range(8):
