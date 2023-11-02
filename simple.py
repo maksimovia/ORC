@@ -34,25 +34,25 @@ class Window(QMainWindow):
 
         self.t_gas_input = QLineEdit(parent=self.tab1)
         self.t_gas_input.setGeometry(50, 60, 50, 20)
-        self.t_gas_input.setText('250')
+        self.t_gas_input.setText('183.6')
         self.t_gas_txt = QLabel('T =', parent=self.tab1)
         self.t_gas_txt.setGeometry(30, 60, 20, 20)
 
         self.p_gas_input = QLineEdit(parent=self.tab1)
         self.p_gas_input.setGeometry(50, 80, 50, 20)
-        self.p_gas_input.setText('16')
+        self.p_gas_input.setText('0.1')
         self.p_gas_txt = QLabel('P =', parent=self.tab1)
         self.p_gas_txt.setGeometry(30, 80, 20, 20)
 
         self.g_gas_input = QLineEdit(parent=self.tab1)
         self.g_gas_input.setGeometry(50, 100, 50, 20)
-        self.g_gas_input.setText('1000')
+        self.g_gas_input.setText('509')
         self.g_gas_txt = QLabel('G =', parent=self.tab1)
         self.g_gas_txt.setGeometry(30, 100, 20, 20)
 
         self.t_gas_out_input = QLineEdit(parent=self.tab1)
         self.t_gas_out_input.setGeometry(50, 300, 50, 20)
-        self.t_gas_out_input.setText('240')
+        self.t_gas_out_input.setText('80')
         self.t_gas_out_input_txt = QLabel('T =', parent=self.tab1)
         self.t_gas_out_input_txt.setGeometry(30, 300, 20, 20)
 
@@ -130,7 +130,7 @@ class Window(QMainWindow):
 
         self.x_gas_input = QLineEdit(parent=self.tab1)
         self.x_gas_input.setGeometry(600, 100, 180, 25)
-        self.x_gas_input.setText('WATER')
+        self.x_gas_input.setText('N2;0.7798;O2;0.1226;CO2;0.0305;H2O;0.0605;AR;0.0066')
         self.x_gas_input_txt = QLabel('Состав нагревающего потока:', parent=self.tab1)
         self.x_gas_input_txt.setGeometry(600, 75, 180, 25)
 
@@ -148,13 +148,13 @@ class Window(QMainWindow):
 
         self.cycle_tolerance_input = QLineEdit(parent=self.tab1)
         self.cycle_tolerance_input.setGeometry(600, 250, 180, 25)
-        self.cycle_tolerance_input.setText('10**-5')
+        self.cycle_tolerance_input.setText('10**-6')
         self.cycle_tolerance_input_txt = QLabel('Сходимость по балансу:', parent=self.tab1)
         self.cycle_tolerance_input_txt.setGeometry(600, 225, 180, 25)
 
         self.cycle_tolerance_root = QLineEdit(parent=self.tab1)
         self.cycle_tolerance_root.setGeometry(600, 300, 180, 25)
-        self.cycle_tolerance_root.setText('10**-5')
+        self.cycle_tolerance_root.setText('10**-6')
         self.cycle_tolerance_root_txt = QLabel('Точность поиска корней:', parent=self.tab1)
         self.cycle_tolerance_root_txt.setGeometry(600, 275, 180, 25)
 
@@ -375,7 +375,7 @@ class Window(QMainWindow):
         self.opt_pmax_txt.setGeometry(50, 125+100, 180, 25)
         self.opt_pmax = QLineEdit(parent=self.tab5)
         self.opt_pmax.setGeometry(50, 150+100, 180, 25)
-        self.opt_pmax.setText('35')
+        self.opt_pmax.setText('15')
 
         self.opt_pstep_txt = QLabel('Шаг изменения давления:', parent=self.tab5)
         self.opt_pstep_txt.setGeometry(50, 175+100, 180, 25)
@@ -398,14 +398,18 @@ class Window(QMainWindow):
 
         self.optimus_table = QTableWidget(parent=self.tab5)
         self.optimus_table.setGeometry(425, 50, 341, 400)
-        self.optimus_table.setColumnCount(5)
-        self.optimus_table.setRowCount(15)
-        self.optimus_table.setHorizontalHeaderLabels(["X", "P", "KPD", "Q1", "Q2"])
+        self.optimus_table.setColumnCount(9)
+        self.optimus_table.setRowCount(1)
+        self.optimus_table.setHorizontalHeaderLabels(["X", "P", "KPD", "Nturb","Npump","Qheat","Qcond","Q1", "Q2"])
         self.optimus_table.setColumnWidth(0, 50)
         self.optimus_table.setColumnWidth(1, 50)
         self.optimus_table.setColumnWidth(2, 50)
         self.optimus_table.setColumnWidth(3, 50)
         self.optimus_table.setColumnWidth(4, 50)
+        self.optimus_table.setColumnWidth(5, 50)
+        self.optimus_table.setColumnWidth(6, 50)
+        self.optimus_table.setColumnWidth(7, 50)
+        self.optimus_table.setColumnWidth(8, 50)
         self.optimus_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.optimus_table.customContextMenuRequested.connect(self.contextMenuEvent)
         # ###############tab-5-end############### #
@@ -506,12 +510,14 @@ class Window(QMainWindow):
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(' '))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(' '))
                 self.optimus_table.setItem(i, 4, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 5, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 6, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 7, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 8, QTableWidgetItem(' '))
 
 
                 i = i+1
-        if self.optimus_table.rowCount() > 29:
-            for i in range(15):
-                self.optimus_table.removeRow(self.optimus_table.rowCount()-1)
+
         i=0
         for X_cond in fluid_list:
             for p_pump in np.arange(float(self.opt_pmin.text()), float(self.opt_pmax.text())+float(self.opt_pstep.text()), float(self.opt_pstep.text())):
@@ -521,12 +527,20 @@ class Window(QMainWindow):
                     self.optimus_table.item(i-1, 2).setBackground(QColor(255, 255, 255))
                     self.optimus_table.item(i-1, 3).setBackground(QColor(255, 255, 255))
                     self.optimus_table.item(i-1, 4).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i-1, 5).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i-1, 6).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i-1, 7).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i-1, 8).setBackground(QColor(255, 255, 255))
 
                 self.optimus_table.item(i, 0).setBackground(QColor(0,204,102))
                 self.optimus_table.item(i, 1).setBackground(QColor(0,204,102))
                 self.optimus_table.item(i, 2).setBackground(QColor(0,204,102))
                 self.optimus_table.item(i, 3).setBackground(QColor(0,204,102))
                 self.optimus_table.item(i, 4).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 5).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 6).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 7).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 8).setBackground(QColor(0,204,102))
 
                 self.opt_iter_Flag = True
                 open_db()
@@ -649,19 +663,33 @@ class Window(QMainWindow):
                     self.optimus_table.setItem(i, 2, QTableWidgetItem(str('-')))
                     self.optimus_table.setItem(i, 3, QTableWidgetItem(str('-')))
                     self.optimus_table.setItem(i, 4, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 4, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 5, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 6, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 7, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 8, QTableWidgetItem(str('-')))
+
                     i = i + 1
                     close_db()
                     continue
 
                 KPD = (read_block('TURBINE')["Q"]*kpd_turb_m*kpd_turb_e - read_block('PUMP')["Q"]*kpd_pump_e*kpd_pump_e) / read_block('HEATER')["Q"]
-                print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
+                print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"],read_block("PUMP")["Q"],read_block("HEATER")["Q"],read_block("CONDENSER")["Q"],read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
                 self.kpd_output.setText(str(round(KPD, tolerance_exp+2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
-                self.optimus_table.setItem(i, 3, QTableWidgetItem(str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
-                self.optimus_table.setItem(i, 4, QTableWidgetItem(str(round(float(read_stream("TURB-COND")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 3, QTableWidgetItem(str(round(float(read_block("TURBINE")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 4, QTableWidgetItem(str(round(float(read_block("PUMP")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 5, QTableWidgetItem(str(round(float(read_block("HEATER")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 6, QTableWidgetItem(str(round(float(read_block("CONDENSER")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 7, QTableWidgetItem(str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 8, QTableWidgetItem(str(round(float(read_stream("TURB-COND")["Q"]), tolerance_exp))))
                 self.optimus_table.item(i, 2).setBackground(QColor(0,204,102))
                 self.optimus_table.item(i, 3).setBackground(QColor(0,204,102))
                 self.optimus_table.item(i, 4).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 5).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 6).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 7).setBackground(QColor(0,204,102))
+                self.optimus_table.item(i, 8).setBackground(QColor(0,204,102))
 
                 i = i + 1
                 close_db()

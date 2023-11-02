@@ -23,6 +23,7 @@ class Heat:
     def calc(self):
         P11 = read_stream(self.stream11)['P']
         H11 = read_stream(self.stream11)['H']
+        T11 = read_stream(self.stream11)['T']
         G1 = read_stream(self.stream11)['G']
         fluid1 = read_stream(self.stream11)['X']
         P21 = read_stream(self.stream21)['P']
@@ -33,6 +34,8 @@ class Heat:
         S12 = prop.t_p(T12, P11, fluid1)["S"]
         Q12 = prop.t_p(T12, P11, fluid1)["Q"]
         step = (H11 - H12) / self.h_steps
+
+        T21 = read_stream(self.stream21)['T']
 
         def G2_func(G2):
             t1 = np.zeros(self.h_steps + 1)
@@ -56,7 +59,7 @@ class Heat:
             min_dt = min(DT[:-1])
             return self.dT - min_dt
 
-        G2 = root(G2_func, 100, self.root_tolerance)
+        G2 = root(G2_func, G1 * (H11 - H12) / (prop.t_p(T11, P21, fluid2)['H'] - H21), self.root_tolerance)
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -78,9 +81,9 @@ class Heat:
         DT = t1 - t2
         min_dt = min(DT)
         T22 = t2[0]
-        H22 = prop.t_p(T22, P21, fluid2)["H"]
-        S22 = prop.t_p(T22, P21, fluid2)["S"]
-        Q22 = prop.t_p(T22, P21, fluid2)["Q"]
+        H22 = h22
+        S22 = prop.h_p(H22, P21, fluid2)["S"]
+        Q22 = prop.h_p(H22, P21, fluid2)["Q"]
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
         write_block('HEATER', Q[-1], min_dt)
@@ -176,6 +179,7 @@ class Cond:
     def calc(self):
         P1 = read_stream(self.stream11)['P']
         H11 = read_stream(self.stream11)['H']
+        T11 = read_stream(self.stream11)['T']
         G1 = read_stream(self.stream11)['G']
         fluid1 = read_stream(self.stream11)['X']
         H12 = prop.p_q(P1, 0, fluid1)["H"]
@@ -205,7 +209,7 @@ class Cond:
             DT = t1 - t2
             min_dt = min(DT)
             return self.dt - min_dt
-        G2 = root(G2_func, 100, self.root_tolerance)
+        G2 = root(G2_func, G1*(H11-H12)/(prop.t_p(prop.p_q(P1,0,fluid1)["T"], P2, fluid2)['H']-H21), self.root_tolerance)
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -226,9 +230,9 @@ class Cond:
         DT = t1 - t2
         min_dt = min(DT)
         T22 = t2[0]
-        H22 = prop.t_p(T22, P2, fluid2)["H"]
-        S22 = prop.t_p(T22, P2, fluid2)["S"]
-        Q22 = prop.t_p(T22, P2, fluid2)["Q"]
+        H22 = h22
+        S22 = prop.h_p(H22, P2, fluid2)["S"]
+        Q22 = prop.h_p(H22, P2, fluid2)["Q"]
         T12 = prop.h_p(H12, P1, fluid1)["T"]
         S12 = prop.h_p(H12, P1, fluid1)["S"]
         T21 = prop.h_p(H21, P2, fluid2)["T"]
@@ -295,7 +299,7 @@ class Regen:
         fluid2 = read_stream(self.stream21)['X']
 
         def T22_func(T22):
-            T22 = min(T22, read_stream("HEAT-OUT")["T"] - self.dtheat)
+            T22 = max(T21, min(T22, read_stream("HEAT-OUT")["T"] - self.dtheat))
             H22 = prop.t_p(T22, P21, fluid2)["H"]
             t1 = np.zeros(self.h_steps + 1)
             t2 = np.zeros(self.h_steps + 1)
@@ -332,7 +336,7 @@ class Regen:
             S22 = prop.h_p(H21, P21, fluid2)["S"]
             Q22 = prop.h_p(H21, P21, fluid2)["Q"]
         else:
-            T22 = root(T22_func, T21, self.root_tolerance)
+            T22 = root(T22_func, (T11+T21)/2, self.root_tolerance)
             H22 = prop.t_p(T22, P21, fluid2)["H"]
             t1 = np.zeros(self.h_steps + 1)
             t2 = np.zeros(self.h_steps + 1)

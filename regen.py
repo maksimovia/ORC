@@ -11,7 +11,6 @@ import datetime
 import time
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-import sys
 from scipy import optimize
 
 
@@ -443,15 +442,21 @@ class Window(QMainWindow):
 
         self.optimus_table = QTableWidget(parent=self.tab5)
         self.optimus_table.setGeometry(425, 50, 341, 400)
-        self.optimus_table.setColumnCount(6)
-        self.optimus_table.setRowCount(15)
-        self.optimus_table.setHorizontalHeaderLabels(["X", "P", "KPD", "Q1", "Q2", "DTreg"])
+        self.optimus_table.setColumnCount(11)
+        self.optimus_table.setRowCount(1)
+        self.optimus_table.setHorizontalHeaderLabels(["X", "P", "KPD", "Nturb","Npump","Qheat","Qcond","Qreg","Q1", "Q2", "DTreg"])
         self.optimus_table.setColumnWidth(0, 50)
         self.optimus_table.setColumnWidth(1, 50)
         self.optimus_table.setColumnWidth(2, 50)
         self.optimus_table.setColumnWidth(3, 50)
         self.optimus_table.setColumnWidth(4, 50)
         self.optimus_table.setColumnWidth(5, 50)
+        self.optimus_table.setColumnWidth(6, 50)
+        self.optimus_table.setColumnWidth(7, 50)
+        self.optimus_table.setColumnWidth(8, 50)
+        self.optimus_table.setColumnWidth(9, 50)
+        self.optimus_table.setColumnWidth(10, 50)
+
         self.optimus_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.optimus_table.customContextMenuRequested.connect(self.contextMenuev)
         # ###############tab-5-end############### #
@@ -584,7 +589,11 @@ class Window(QMainWindow):
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(' '))
                 self.optimus_table.setItem(i, 4, QTableWidgetItem(' '))
                 self.optimus_table.setItem(i, 5, QTableWidgetItem(' '))
-
+                self.optimus_table.setItem(i, 6, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 7, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 8, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 9, QTableWidgetItem(' '))
+                self.optimus_table.setItem(i, 10, QTableWidgetItem(' '))
                 i = i + 1
         i = 0
         for X_cond in fluid_list:
@@ -598,6 +607,11 @@ class Window(QMainWindow):
                     self.optimus_table.item(i - 1, 3).setBackground(QColor(255, 255, 255))
                     self.optimus_table.item(i - 1, 4).setBackground(QColor(255, 255, 255))
                     self.optimus_table.item(i - 1, 5).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i - 1, 6).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i - 1, 7).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i - 1, 8).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i - 1, 9).setBackground(QColor(255, 255, 255))
+                    self.optimus_table.item(i - 1, 10).setBackground(QColor(255, 255, 255))
 
                 self.optimus_table.item(i, 0).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 1).setBackground(QColor(0, 204, 102))
@@ -605,6 +619,11 @@ class Window(QMainWindow):
                 self.optimus_table.item(i, 3).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 4).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 5).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 6).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 7).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 8).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 9).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 10).setBackground(QColor(0, 204, 102))
 
                 self.opt_iter_Flag = True
                 open_db()
@@ -807,6 +826,12 @@ class Window(QMainWindow):
                     self.optimus_table.setItem(i, 3, QTableWidgetItem(str('-')))
                     self.optimus_table.setItem(i, 4, QTableWidgetItem(str('-')))
                     self.optimus_table.setItem(i, 5, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 6, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 7, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 8, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 9, QTableWidgetItem(str('-')))
+                    self.optimus_table.setItem(i, 10, QTableWidgetItem(str('-')))
+
                     i = i + 1
                     close_db()
                     continue
@@ -818,16 +843,32 @@ class Window(QMainWindow):
                 self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(
-                    str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
+                    str(round(float(read_block("TURBINE")["Q"]), tolerance_exp))))
                 self.optimus_table.setItem(i, 4, QTableWidgetItem(
-                    str(round(float(read_stream("TURB-REGEN")["Q"]), tolerance_exp))))
+                    str(round(float(read_block("PUMP")["Q"]), tolerance_exp))))
                 self.optimus_table.setItem(i, 5, QTableWidgetItem(
+                    str(round(float(read_block("HEATER")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 6, QTableWidgetItem(
+                    str(round(float(read_block("CONDENSER")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 7, QTableWidgetItem(
+                    str(round(float(read_block("REGEN")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 8, QTableWidgetItem(
+                    str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 9, QTableWidgetItem(
+                    str(round(float(read_stream("TURB-REGEN")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 10, QTableWidgetItem(
                     str(round(float(read_block("REGEN")["DT"]), tolerance_exp))))
 
                 self.optimus_table.item(i, 2).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 3).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 4).setBackground(QColor(0, 204, 102))
                 self.optimus_table.item(i, 5).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 6).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 7).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 8).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 9).setBackground(QColor(0, 204, 102))
+                self.optimus_table.item(i, 10).setBackground(QColor(0, 204, 102))
+
                 i = i + 1
         self.time_flag = False
         if self.calc_Flag is True:
@@ -1133,6 +1174,11 @@ class Window(QMainWindow):
             self.optimus_table.setItem(i_opt, 3, QTableWidgetItem(str()))
             self.optimus_table.setItem(i_opt, 4, QTableWidgetItem(str()))
             self.optimus_table.setItem(i_opt, 5, QTableWidgetItem(str()))
+            self.optimus_table.setItem(i_opt, 6, QTableWidgetItem(str()))
+            self.optimus_table.setItem(i_opt, 7, QTableWidgetItem(str()))
+            self.optimus_table.setItem(i_opt, 8, QTableWidgetItem(str()))
+            self.optimus_table.setItem(i_opt, 9, QTableWidgetItem(str()))
+            self.optimus_table.setItem(i_opt, 10, QTableWidgetItem(str()))
 
             self.optimus_table.item(i_opt, 0).setBackground(QColor(0, 204, 102))
             self.optimus_table.item(i_opt, 1).setBackground(QColor(0, 204, 102))
@@ -1140,6 +1186,11 @@ class Window(QMainWindow):
             self.optimus_table.item(i_opt, 3).setBackground(QColor(0, 204, 102))
             self.optimus_table.item(i_opt, 4).setBackground(QColor(0, 204, 102))
             self.optimus_table.item(i_opt, 5).setBackground(QColor(0, 204, 102))
+            self.optimus_table.item(i_opt, 6).setBackground(QColor(0, 204, 102))
+            self.optimus_table.item(i_opt, 7).setBackground(QColor(0, 204, 102))
+            self.optimus_table.item(i_opt, 8).setBackground(QColor(0, 204, 102))
+            self.optimus_table.item(i_opt, 9).setBackground(QColor(0, 204, 102))
+            self.optimus_table.item(i_opt, 10).setBackground(QColor(0, 204, 102))
             self.optimus_table.insertRow(i_opt+1)
 
             open_db()
@@ -1256,9 +1307,22 @@ class Window(QMainWindow):
             self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
 
             self.optimus_table.setItem(i_opt, 2, QTableWidgetItem(str(round(KPD, 5))))
-            self.optimus_table.setItem(i_opt, 3, QTableWidgetItem(str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
-            self.optimus_table.setItem(i_opt, 4, QTableWidgetItem(str(round(float(read_stream("TURB-REGEN")["Q"]), tolerance_exp))))
-            self.optimus_table.setItem(i_opt, 5, QTableWidgetItem(str(round(float(read_block("REGEN")["DT"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 3, QTableWidgetItem(
+                str(round(float(read_block("TURBINE")["Q"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 4, QTableWidgetItem(
+                str(round(float(read_block("PUMP")["Q"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 5, QTableWidgetItem(
+                str(round(float(read_block("HEATER")["Q"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 6, QTableWidgetItem(
+                str(round(float(read_block("CONDENSER")["Q"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 7, QTableWidgetItem(
+                str(round(float(read_block("REGEN")["Q"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 8, QTableWidgetItem(
+                str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 9, QTableWidgetItem(
+                str(round(float(read_stream("TURB-REGEN")["Q"]), tolerance_exp))))
+            self.optimus_table.setItem(i_opt, 10, QTableWidgetItem(
+                str(round(float(read_block("REGEN")["DT"]), tolerance_exp))))
             self.optimus_table.item(i_opt, 0).setBackground(QColor(255, 255, 255))
             self.optimus_table.item(i_opt, 1).setBackground(QColor(255, 255, 255))
             i_opt = i_opt + 1
@@ -1284,7 +1348,7 @@ class Window(QMainWindow):
             self.status_txt.setText('Расчёт остановлен')
         print('end calc')
 
-app = QApplication(sys.argv)
+app = QApplication([])
 window = Window()
 window.show()
 app.exec()
