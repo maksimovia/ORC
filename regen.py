@@ -35,7 +35,7 @@ class Window(QMainWindow):
 
         self.t_gas_input = QLineEdit(parent=self.tab1)
         self.t_gas_input.setGeometry(50, 40, 50, 20)
-        self.t_gas_input.setText('183.6')
+        self.t_gas_input.setText('221.6152038')
         self.t_gas_txt = QLabel('T =', parent=self.tab1)
         self.t_gas_txt.setGeometry(30, 40, 20, 20)
 
@@ -137,7 +137,7 @@ class Window(QMainWindow):
 
         self.x_gas_input = QLineEdit(parent=self.tab1)
         self.x_gas_input.setGeometry(600, 100, 180, 25)
-        self.x_gas_input.setText('N2;0.7798;O2;0.1226;CO2;0.0305;H2O;0.0605;AR;0.0066')
+        self.x_gas_input.setText('N2;0.7557;O2;0.13834;WATER;0.06438;CO2;0.03254;AR;0.00904')
         self.x_gas_input_txt = QLabel('Состав нагревающего потока:', parent=self.tab1)
         self.x_gas_input_txt.setGeometry(600, 75, 180, 25)
 
@@ -392,8 +392,7 @@ class Window(QMainWindow):
         self.opt_fluid = QListWidget(parent=self.tab5)
         self.opt_fluid.setGeometry(50, 50, 100, 125)
         self.opt_fluid.addItems(
-            ['R236ea', 'R123', 'R124', 'R134a', 'R11', 'R601', 'R600', 'R717', 'R22', 'R124', 'R41', 'R12', 'CO2',
-             'WATER'])
+            ['R236ea', 'R123', 'R124', 'R134a', 'R601', 'R600', 'R717', 'R22', 'R124', 'R41', 'R12'])
         self.opt_fluid.itemDoubleClicked.connect(self.fluid_clicked)
 
         self.opt_fluid_txt = QLabel('Выбрано:', parent=self.tab5)
@@ -406,19 +405,19 @@ class Window(QMainWindow):
         self.opt_pmin_txt.setGeometry(50, 75 + 100, 180, 25)
         self.opt_pmin = QLineEdit(parent=self.tab5)
         self.opt_pmin.setGeometry(50, 100 + 100, 180, 25)
-        self.opt_pmin.setText('3.3')
+        self.opt_pmin.setText('3')
 
         self.opt_pmax_txt = QLabel('Конечное давление:', parent=self.tab5)
         self.opt_pmax_txt.setGeometry(50, 125 + 100, 180, 25)
         self.opt_pmax = QLineEdit(parent=self.tab5)
         self.opt_pmax.setGeometry(50, 150 + 100, 180, 25)
-        self.opt_pmax.setText('3.8')
+        self.opt_pmax.setText('10')
 
         self.opt_pstep_txt = QLabel('Шаг изменения давления:', parent=self.tab5)
         self.opt_pstep_txt.setGeometry(50, 175 + 100, 180, 25)
         self.opt_pstep = QLineEdit(parent=self.tab5)
         self.opt_pstep.setGeometry(50, 200 + 100, 180, 25)
-        self.opt_pstep.setText('0.1')
+        self.opt_pstep.setText('0.5')
 
         self.start_optimus_button = QPushButton("Расчёт в диапазоне", parent=self.tab5)
         self.start_optimus_button.clicked.connect(self.optimus_start)
@@ -1336,7 +1335,7 @@ class Window(QMainWindow):
             mtd = 'Powell'
         else:
             mtd = 'Nelder-Mead'
-        res = optimize.minimize(cycle_calc, (float(self.opt_pmin.text())+float(self.opt_pmax.text()))/2, method=mtd, tol=1e-4, bounds=bnds)
+        res = optimize.minimize(cycle_calc, (float(self.opt_pmin.text())+float(self.opt_pmax.text()))/2, method=mtd, tol=1e-3, bounds=bnds)
         print(res)
 
         self.time_flag = False

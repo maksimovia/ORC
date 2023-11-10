@@ -58,8 +58,11 @@ class Heat:
             DT = t1 - t2
             min_dt = min(DT[:-1])
             return self.dT - min_dt
-
         G2 = root(G2_func, G1 * (H11 - H12) / (prop.t_p(T11, P21, fluid2)['H'] - H21), self.root_tolerance)
+
+        if read_stream('HEAT-TURB')["G"] != None:         ###!!!
+            G2 = (G2 + read_stream('HEAT-TURB')["G"])/2   ###!!!
+
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
         Q = np.zeros(self.h_steps + 1)
@@ -337,6 +340,10 @@ class Regen:
             Q22 = prop.h_p(H21, P21, fluid2)["Q"]
         else:
             T22 = root(T22_func, (T11+T21)/2, self.root_tolerance)
+            if T22 > (read_stream("HEAT-OUT")["T"] - self.dtheat-1):  ###!!!
+                T22 = (read_stream("HEAT-OUT")["T"] - self.dtheat-1)  ###!!!
+            else:
+                T22 = T22
             H22 = prop.t_p(T22, P21, fluid2)["H"]
             t1 = np.zeros(self.h_steps + 1)
             t2 = np.zeros(self.h_steps + 1)
