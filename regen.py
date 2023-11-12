@@ -47,7 +47,7 @@ class Window(QMainWindow):
 
         self.g_gas_input = QLineEdit(parent=self.tab1)
         self.g_gas_input.setGeometry(50, 80, 50, 20)
-        self.g_gas_input.setText('509')
+        self.g_gas_input.setText('502')
         self.g_gas_txt = QLabel('G =', parent=self.tab1)
         self.g_gas_txt.setGeometry(30, 80, 20, 20)
 
@@ -137,7 +137,7 @@ class Window(QMainWindow):
 
         self.x_gas_input = QLineEdit(parent=self.tab1)
         self.x_gas_input.setGeometry(600, 100, 180, 25)
-        self.x_gas_input.setText('N2;0.7557;O2;0.13834;WATER;0.06438;CO2;0.03254;AR;0.00904')
+        self.x_gas_input.setText('N2;0.7562;O2;0.1397;CO2;0.0319;H2O;0.0631;AR;0.0090')
         self.x_gas_input_txt = QLabel('Состав нагревающего потока:', parent=self.tab1)
         self.x_gas_input_txt.setGeometry(600, 75, 180, 25)
 
@@ -391,8 +391,7 @@ class Window(QMainWindow):
         self.opt_fluid_txt.setGeometry(50, 25, 180, 25)
         self.opt_fluid = QListWidget(parent=self.tab5)
         self.opt_fluid.setGeometry(50, 50, 100, 125)
-        self.opt_fluid.addItems(
-            ['R236ea', 'R123', 'R124', 'R134a', 'R601', 'R600', 'R717', 'R22', 'R124', 'R41', 'R12'])
+        self.opt_fluid.addItems(['R236ea', 'R123', 'R124', 'R134a', 'Isobutane', 'Ammonia', 'R245fa', 'R22', 'R41', 'R12', 'R32','R365mfc'])
         self.opt_fluid.itemDoubleClicked.connect(self.fluid_clicked)
 
         self.opt_fluid_txt = QLabel('Выбрано:', parent=self.tab5)

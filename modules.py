@@ -60,8 +60,14 @@ class Heat:
             return self.dT - min_dt
         G2 = root(G2_func, G1 * (H11 - H12) / (prop.t_p(T11, P21, fluid2)['H'] - H21), self.root_tolerance)
 
-        if read_stream('HEAT-TURB')["G"] != None:         ###!!!
-            G2 = (G2 + read_stream('HEAT-TURB')["G"])/2   ###!!!
+        # if G2 > G1*(H11-H12)/(prop.p_q(P21, 1, fluid2)['H']-H21):
+        #     print('pizda')
+        #     G2 = G1*(H11-H12)/(prop.p_q(P21, 1, fluid2)['H']-H21)
+
+
+
+        # if read_stream('HEAT-TURB')["G"] != None:         ###!!!
+        #     G2 = (G2 + read_stream('HEAT-TURB')["G"])/2   ###!!!
 
         t1 = np.zeros(self.h_steps + 1)
         t2 = np.zeros(self.h_steps + 1)
@@ -85,11 +91,17 @@ class Heat:
         min_dt = min(DT)
         T22 = t2[0]
         H22 = h22
+
+        H22 = H21 + 0.996*(H22-H21)
+        dP = 0.95
+        P21 = P21*dP
+        T22 = prop.h_p(H22, P21, fluid2)["T"]
         S22 = prop.h_p(H22, P21, fluid2)["S"]
         Q22 = prop.h_p(H22, P21, fluid2)["Q"]
+        Qh = Q[-1]*0.996
         write_stream(self.stream12, T12, P11, H12, S12, Q12, G1, fluid1)
         write_stream(self.stream22, T22, P21, H22, S22, Q22, G2, fluid2)
-        write_block('HEATER', Q[-1], min_dt)
+        write_block('HEATER', Qh, min_dt)
         pass
 
     def TQ(self):
