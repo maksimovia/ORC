@@ -641,7 +641,7 @@ class Window(QMainWindow):
                     self.calc_IN_COND_G.setText(f'G = {round(float(read_stream("COND-OUT")["G"]), tolerance_exp)}')
 
                     balance = abs(read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
-                               read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
+                               read_block('CONDENSER')["Q"] - (1-0.996)*read_block('HEATER')["Q"]) / read_block('HEATER')["Q"]
                     self.calc_balance.setText(f"Δ = {balance}")
                     self.balance_cumm.append(balance)
                     self.balance_ax.clear()
@@ -844,7 +844,8 @@ class Window(QMainWindow):
             self.calc_IN_COND_G.setText(f'G = {round(float(read_stream("COND-OUT")["G"]), tolerance_exp)}')
 
             balance = abs(read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
-                       read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
+                          read_block('CONDENSER')["Q"] - (1 - 0.996) * read_block('HEATER')["Q"]) / \
+                      read_block('HEATER')["Q"]
             self.calc_balance.setText(f"Δ = {balance}")
             self.balance_cumm.append(balance)
             self.balance_ax.clear()

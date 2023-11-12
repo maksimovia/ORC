@@ -731,7 +731,7 @@ class Window(QMainWindow):
                     self.calc_HEAT_Q.setText(f'Q = {round(float(read_block("HEATER")["Q"]), tolerance_exp)}')
                     self.calc_HEAT_DT.setText(f'ΔT = {round(float(read_block("HEATER")["DT"]), tolerance_exp)}')
 
-                    turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
+                    turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"]/0.95, kpd_turb)
                     turbine.calc()
                     self.calc_TURB_REGEN_T.setText(f'T = {round(float(read_stream("TURB-REGEN")["T"]), tolerance_exp)}')
                     self.calc_TURB_REGEN_P.setText(f'P = {round(float(read_stream("TURB-REGEN")["P"]), tolerance_exp)}')
@@ -763,7 +763,7 @@ class Window(QMainWindow):
                     self.calc_COND_DT.setText(f'ΔT = {round(float(read_block("CONDENSER")["DT"]), tolerance_exp)}')
                     self.calc_IN_COND_G.setText(f'G = {round(float(read_stream("COND-OUT")["G"]), tolerance_exp)}')
                     balance = abs(read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
-                                  read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
+                                  read_block('CONDENSER')["Q"] - ((1-0.996)*read_block('HEATER')["Q"] + (1-0.99)*read_block('REGEN')["Q"])) / read_block('HEATER')["Q"]
                     self.calc_balance.setText(f"Δ = {balance}")
                     self.balance_cumm.append(balance)
                     self.balance_ax.clear()
@@ -836,8 +836,7 @@ class Window(QMainWindow):
 
                 KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
                     "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-
-                print(X_cond,p_pump,KPD,read_stream("HEAT-TURB")["Q"],read_stream("TURB-REGEN")["Q"],read_block("REGEN")["DT"])
+                print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"],read_block("PUMP")["Q"],read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"])
                 self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(
@@ -1021,7 +1020,7 @@ class Window(QMainWindow):
             self.calc_HEAT_Q.setText(f'Q = {round(float(read_block("HEATER")["Q"]), tolerance_exp)}')
             self.calc_HEAT_DT.setText(f'ΔT = {round(float(read_block("HEATER")["DT"]), tolerance_exp)}')
 
-            turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
+            turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"]/0.95, kpd_turb)
             turbine.calc()
             self.calc_TURB_REGEN_T.setText(f'T = {round(float(read_stream("TURB-REGEN")["T"]), tolerance_exp)}')
             self.calc_TURB_REGEN_P.setText(f'P = {round(float(read_stream("TURB-REGEN")["P"]), tolerance_exp)}')
@@ -1053,7 +1052,9 @@ class Window(QMainWindow):
             self.calc_IN_COND_G.setText(f'G = {round(float(read_stream("COND-OUT")["G"]), tolerance_exp)}')
 
             balance = abs(read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
-                          read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
+                          read_block('CONDENSER')["Q"] - (
+                                      (1 - 0.996) * read_block('HEATER')["Q"] + (1 - 0.99) * read_block('REGEN')[
+                                  "Q"])) / read_block('HEATER')["Q"]
             self.calc_balance.setText(f"Δ = {balance}")
             self.balance_cumm.append(balance)
             self.balance_ax.clear()
@@ -1072,7 +1073,8 @@ class Window(QMainWindow):
                 break
         KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
             "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-        print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"],read_block("REGEN")["DT"])
+        print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"], read_block("PUMP")["Q"], read_stream("HEAT-TURB")["Q"],
+              read_stream("TURB-REGEN")["Q"])
         self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
 
         for i in range(10):
@@ -1250,7 +1252,7 @@ class Window(QMainWindow):
                 self.calc_HEAT_Q.setText(f'Q = {round(float(read_block("HEATER")["Q"]), tolerance_exp)}')
                 self.calc_HEAT_DT.setText(f'ΔT = {round(float(read_block("HEATER")["DT"]), tolerance_exp)}')
 
-                turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"], kpd_turb)
+                turbine = Turb('HEAT-TURB', 'TURB-REGEN', prop.t_q(T_cond, 0, X_cond)["P"]/0.95, kpd_turb)
                 turbine.calc()
                 self.calc_TURB_REGEN_T.setText(f'T = {round(float(read_stream("TURB-REGEN")["T"]), tolerance_exp)}')
                 self.calc_TURB_REGEN_P.setText(f'P = {round(float(read_stream("TURB-REGEN")["P"]), tolerance_exp)}')
@@ -1282,7 +1284,9 @@ class Window(QMainWindow):
                 self.calc_IN_COND_G.setText(f'G = {round(float(read_stream("COND-OUT")["G"]), tolerance_exp)}')
 
                 balance = abs(read_block('HEATER')["Q"] + read_block('PUMP')["Q"] - read_block('TURBINE')["Q"] -
-                              read_block('CONDENSER')["Q"]) / read_block('HEATER')["Q"]
+                              read_block('CONDENSER')["Q"] - (
+                                          (1 - 0.996) * read_block('HEATER')["Q"] + (1 - 0.99) * read_block('REGEN')[
+                                      "Q"])) / read_block('HEATER')["Q"]
                 self.calc_balance.setText(f"Δ = {balance}")
                 self.balance_cumm.append(balance)
                 self.balance_ax.clear()
@@ -1301,7 +1305,8 @@ class Window(QMainWindow):
                     break
             KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
                 "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-            print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"],read_block("REGEN")["DT"])
+            print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"], read_block("PUMP")["Q"],
+                  read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"])
             self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
 
             self.optimus_table.setItem(i_opt, 2, QTableWidgetItem(str(round(KPD, 5))))
