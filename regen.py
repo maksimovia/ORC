@@ -835,14 +835,14 @@ class Window(QMainWindow):
                     continue
 
                 KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
-                    "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-                print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"],read_block("PUMP")["Q"],read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"])
+                    "Q"] / (kpd_pump_e * kpd_pump_m)) / read_block('HEATER')["Q"]
+                print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"]* kpd_turb_m * kpd_turb_e,read_block("PUMP")["Q"]/ (kpd_pump_e * kpd_pump_m),read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"])
                 self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
                 self.optimus_table.setItem(i, 3, QTableWidgetItem(
-                    str(round(float(read_block("TURBINE")["Q"]), tolerance_exp))))
+                    str(round(float(read_block("TURBINE")["Q"]* kpd_turb_m * kpd_turb_e), tolerance_exp))))
                 self.optimus_table.setItem(i, 4, QTableWidgetItem(
-                    str(round(float(read_block("PUMP")["Q"]), tolerance_exp))))
+                    str(round(float(read_block("PUMP")["Q"]/ (kpd_pump_e * kpd_pump_m)), tolerance_exp))))
                 self.optimus_table.setItem(i, 5, QTableWidgetItem(
                     str(round(float(read_block("HEATER")["Q"]), tolerance_exp))))
                 self.optimus_table.setItem(i, 6, QTableWidgetItem(
@@ -1072,8 +1072,8 @@ class Window(QMainWindow):
             if balance < cycle_tolerance:
                 break
         KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
-            "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-        print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"], read_block("PUMP")["Q"], read_stream("HEAT-TURB")["Q"],
+            "Q"] / (kpd_pump_e * kpd_pump_m)) / read_block('HEATER')["Q"]
+        print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"]* kpd_turb_m * kpd_turb_e, read_block("PUMP")["Q"]/ (kpd_pump_e * kpd_pump_m), read_stream("HEAT-TURB")["Q"],
               read_stream("TURB-REGEN")["Q"])
         self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
 
@@ -1304,16 +1304,16 @@ class Window(QMainWindow):
                 if balance < cycle_tolerance:
                     break
             KPD = (read_block('TURBINE')["Q"] * kpd_turb_m * kpd_turb_e - read_block('PUMP')[
-                "Q"] * kpd_pump_e * kpd_pump_m) / read_block('HEATER')["Q"]
-            print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"], read_block("PUMP")["Q"],
+                "Q"] /(kpd_pump_e * kpd_pump_m)) / read_block('HEATER')["Q"]
+            print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"]* kpd_turb_m * kpd_turb_e, read_block("PUMP")["Q"]/(kpd_pump_e * kpd_pump_m),
                   read_stream("HEAT-TURB")["Q"], read_stream("TURB-REGEN")["Q"])
             self.kpd_output.setText(str(round(KPD, tolerance_exp + 2)))
 
             self.optimus_table.setItem(i_opt, 2, QTableWidgetItem(str(round(KPD, 5))))
             self.optimus_table.setItem(i_opt, 3, QTableWidgetItem(
-                str(round(float(read_block("TURBINE")["Q"]), tolerance_exp))))
+                str(round(float(read_block("TURBINE")["Q"]* kpd_turb_m * kpd_turb_e), tolerance_exp))))
             self.optimus_table.setItem(i_opt, 4, QTableWidgetItem(
-                str(round(float(read_block("PUMP")["Q"]), tolerance_exp))))
+                str(round(float(read_block("PUMP")["Q"]/(kpd_pump_e * kpd_pump_m)), tolerance_exp))))
             self.optimus_table.setItem(i_opt, 5, QTableWidgetItem(
                 str(round(float(read_block("HEATER")["Q"]), tolerance_exp))))
             self.optimus_table.setItem(i_opt, 6, QTableWidgetItem(

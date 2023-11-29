@@ -34,7 +34,7 @@ class Window(QMainWindow):
 
         self.t_gas_input = QLineEdit(parent=self.tab1)
         self.t_gas_input.setGeometry(50, 60, 50, 20)
-        self.t_gas_input.setText('183.6')
+        self.t_gas_input.setText('200')
         self.t_gas_txt = QLabel('T =', parent=self.tab1)
         self.t_gas_txt.setGeometry(30, 60, 20, 20)
 
@@ -673,12 +673,12 @@ class Window(QMainWindow):
                     close_db()
                     continue
 
-                KPD = (read_block('TURBINE')["Q"]*kpd_turb_m*kpd_turb_e - read_block('PUMP')["Q"]*kpd_pump_e*kpd_pump_e) / read_block('HEATER')["Q"]
-                print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"],read_block("PUMP")["Q"],read_block("HEATER")["Q"],read_block("CONDENSER")["Q"],read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
+                KPD = (read_block('TURBINE')["Q"]*kpd_turb_m*kpd_turb_e - read_block('PUMP')["Q"]/(kpd_pump_e*kpd_pump_e)) / read_block('HEATER')["Q"]
+                print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"]*kpd_turb_m*kpd_turb_e,read_block("PUMP")["Q"]/(kpd_pump_m*kpd_pump_e),read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
                 self.kpd_output.setText(str(round(KPD, tolerance_exp+2)))
                 self.optimus_table.setItem(i, 2, QTableWidgetItem(str(round(KPD, 5))))
-                self.optimus_table.setItem(i, 3, QTableWidgetItem(str(round(float(read_block("TURBINE")["Q"]), tolerance_exp))))
-                self.optimus_table.setItem(i, 4, QTableWidgetItem(str(round(float(read_block("PUMP")["Q"]), tolerance_exp))))
+                self.optimus_table.setItem(i, 3, QTableWidgetItem(str(round(float(read_block("TURBINE")["Q"] * kpd_turb_m * kpd_turb_e), tolerance_exp))))
+                self.optimus_table.setItem(i, 4, QTableWidgetItem(str(round(float(read_block("PUMP")["Q"]/(kpd_pump_m*kpd_pump_e)), tolerance_exp))))
                 self.optimus_table.setItem(i, 5, QTableWidgetItem(str(round(float(read_block("HEATER")["Q"]), tolerance_exp))))
                 self.optimus_table.setItem(i, 6, QTableWidgetItem(str(round(float(read_block("CONDENSER")["Q"]), tolerance_exp))))
                 self.optimus_table.setItem(i, 7, QTableWidgetItem(str(round(float(read_stream("HEAT-TURB")["Q"]), tolerance_exp))))
@@ -862,8 +862,15 @@ class Window(QMainWindow):
             if balance < cycle_tolerance:
                 break
 
-        KPD = (read_block('TURBINE')["Q"] - read_block('PUMP')["Q"]) / read_block('HEATER')["Q"]
-        print(X_cond, p_pump, KPD, read_stream("HEAT-TURB")["Q"], read_stream("TURB-COND")["Q"])
+        kpd_pump_m = float(self.kpd_pump_m_input.text())
+        kpd_turb_m = float(self.kpd_turb_m_input.text())
+        kpd_pump_e = float(self.kpd_pump_e_input.text())
+        kpd_turb_e = float(self.kpd_turb_e_input.text())
+
+        KPD = (read_block('TURBINE')["Q"]*kpd_turb_m*kpd_turb_e - read_block('PUMP')["Q"]/(kpd_pump_m*kpd_pump_e)) / read_block('HEATER')["Q"]
+        print(X_cond, p_pump, KPD, read_block("TURBINE")["Q"] * kpd_turb_m * kpd_turb_e,
+              read_block("PUMP")["Q"] / (kpd_pump_m * kpd_pump_e), read_stream("HEAT-TURB")["Q"],
+              read_stream("TURB-COND")["Q"])
         self.kpd_output.setText(str(round(KPD, tolerance_exp+2)))
 
         for i in range(8):
