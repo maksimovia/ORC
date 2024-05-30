@@ -61,7 +61,7 @@ class Heat:
         G2 = root(G2_func, G1 * (H11 - H12) / (prop.t_p(T11, P21, fluid2)['H'] - H21), self.root_tolerance)
 
         # if G2 > G1*(H11-H12)/(prop.p_q(P21, 1, fluid2)['H']-H21):
-        #     print('pizda')
+        #     print('!!!')
         #     G2 = G1*(H11-H12)/(prop.p_q(P21, 1, fluid2)['H']-H21)
 
 
