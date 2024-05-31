@@ -53,16 +53,16 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
     KPDnet = Nnet / blocks.loc['HEAT', "Q"]
     print(Tgas, Xorc, round(Ppump,5), round(Nnet,5), round(KPDnet,5), round(blocks.loc['HEAT', "dT"],5), streams.loc['HEAT-TURB', "Q"], streams.loc['TURB-REG', "Q"], balance)
 
-Tgas = 180
+Tgas = 204.6950062
 Xorc = "R236ea"
 Ppump = 4.1
 dTreg = 5
 dPreg = 10 * 10**-3
 
-cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+# cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
-# for Ppump in np.arange(3, 6, 0.1):
-#     cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+for Ppump in np.arange(2, 7, 0.5):
+    cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
 print(streams.loc[:, "T":"G"])
 print(blocks)

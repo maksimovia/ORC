@@ -55,7 +55,7 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
             break
     Nnet = blocks.loc['TURB', "N"]*KPDm*KPDe - blocks.loc['PUMP', "N"]/KPDm/KPDe
     KPDnet = Nnet / blocks.loc['HEAT', "Q"]
-    print(Tgas, Xorc, round(Ppump,5), round(Nnet,5), round(KPDnet,5), round(blocks.loc['HEAT', "dT"],5), streams.loc['HEAT-TURB', "Q"], streams.loc['TURB-REG', "Q"], balance)
+    print(Tgas, Xorc, round(Ppump,5), round(Nnet,5), round(KPDnet,5), round(blocks.loc['HEAT', "dT"],5), streams.loc['HEAT-TURB', "Q"], streams.loc['TURB-REG', "Q"], balance, dPreg, dTreg, (streams.loc['TURB-REG','H']-streams.loc['REG-COND','H'])/(streams.loc['TURB-REG','H']-prop.t_p(streams.loc['PUMP-REG','T'],streams.loc['REG-COND','P'],streams.loc['TURB-REG','X'])['H']))
     data.write( '\n'+ str(Tgas)
                +'\t'+ str(Xorc)
                +'\t'+ str(Ppump)
@@ -65,18 +65,22 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
                +'\t'+ str(blocks.loc['HEAT', "dT"])
                +'\t'+ str(streams.loc['HEAT-TURB', "Q"])
                +'\t'+ str(streams.loc['TURB-REG', "Q"])
-               +'\t'+ str(balance))
+               +'\t'+ str(balance)
+               +'\t'+ str(dPreg)
+               +'\t'+ str(dTreg)
+               +'\t'+ str((streams.loc['TURB-REG', 'H'] - streams.loc['REG-COND', 'H']) / (streams.loc['TURB-REG', 'H'] -prop.t_p(streams.loc['PUMP-REG', 'T'], streams.loc['REG-COND', 'P'],streams.loc['TURB-REG', 'X'])['H'])))
 
-Tgas = 180
+Tgas = 200
 Xorc = "R236ea"
-Ppump = 4.1
+Ppump = 6
 dTreg = 5
 dPreg = 10 * 10**-3
 
 if __name__ == '__main__':
-    for Ppump in np.linspace(3,6,50):
-        calculating = Process(target=cycle_calc, args=(Tgas, Xorc, Ppump, dTreg, dPreg))
-        calculating.start()
-        while len(active_children()) > 59:
-            sleep(2)
+    for dPreg in np.linspace(0, 200 * 10**-3, 40):
+        for dTreg in np.linspace(0.1, 40, 40):
+            calculating = Process(target=cycle_calc, args=(Tgas, Xorc, Ppump, dTreg, dPreg))
+            calculating.start()
+            while len(active_children()) > 59:
+                sleep(2)
     data.close()
