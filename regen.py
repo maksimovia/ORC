@@ -35,7 +35,7 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
     streams.loc['IN-HEAT'] = [Tgas, Pgas, prop.t_p(Tgas, Pgas, Xgas)['H'], prop.t_p(Tgas, Pgas, Xgas)['S'], prop.t_p(Tgas, Pgas, Xgas)['Q'], Ggas, Xgas]
     streams.loc['COND-PUMP'] = [Tcond, prop.t_q(Tcond, 0, Xorc)["P"], prop.t_q(Tcond, 0, Xorc)["H"], prop.t_q(Tcond, 0, Xorc)["S"], 0, 1000, Xorc]
 
-    for i in range(9999):
+    for i in range(100):
         PUMP('COND-PUMP', 'PUMP-REG', Ppump, KPDpump, streams, blocks).calc()
         if i == 0:
             streams.loc['REG-HEAT'] = streams.loc['PUMP-REG']
@@ -56,13 +56,13 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
 Tgas = 204.6950062
 Xorc = "R236ea"
 Ppump = 4.1
-dTreg = 5
+dTreg = 7
 dPreg = 10 * 10**-3
 
-# cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
-for Ppump in np.arange(2, 7, 0.5):
-    cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+# for Ppump in np.arange(2, 7, 0.5):
+#     cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
 print(streams.loc[:, "T":"G"])
 print(blocks)

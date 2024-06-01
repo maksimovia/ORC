@@ -73,16 +73,37 @@ class HEAT:
                     p2 = p2 - dP2 / (self.hsteps)
             DT = t1 - t2
             min_dt = min(DT[:-1])
-            T12 = t1[-1]
-            S12 = prop.h_p(h12, self.P11, self.fluid1)["S"]
-            Q12 = prop.h_p(h12, self.P11, self.fluid1)["Q"]
-            S22 = prop.h_p(h22, p2, self.fluid2)["S"]
-            Q22 = prop.h_p(h22, p2, self.fluid2)["Q"]
-            self.streams.loc[self.stream12] = [T12, self.P11, h12, S12, Q12, self.G1, self.fluid1]
-            self.streams.loc[self.stream22] = [t2[0], p2, h22, S22, Q22, G2, self.fluid2]
-            self.blocks.loc['HEAT'] = [0, Q[-1], min_dt, t1, t2, Q]
             return self.dTheat - min_dt
-        root_scalar(G_sved, bracket=[10, 10000], xtol=10**-5)
+        G2 = self.streams.loc[self.stream21, "G"]*0.2+root_scalar(G_sved, bracket=[10, 10000], xtol=10**-5).root*(1-0.2)
+        p2 = self.P21
+        t1 = np.zeros(self.hsteps + 1)
+        t2 = np.zeros(self.hsteps + 1)
+        Q = np.zeros(self.hsteps + 1)
+        h11 = self.H11
+        h21 = self.H21
+        for i in range(self.hsteps + 1):
+            t1[i] = prop.h_p(h11, self.P11, self.fluid1)["T"]
+            if i < self.hsteps:
+                h12 = h11 - step
+                dQ = self.G1 * (h11 - h12)
+                h11 = h12
+                Q[i + 1] = Q[i] + dQ
+        for i in range(self.hsteps + 1):
+            t2[self.hsteps - i] = prop.h_p(h21, p2, self.fluid2)["T"]
+            if i < self.hsteps:
+                h22 = h21 + (Q[self.hsteps - i] - Q[self.hsteps - i - 1]) * self.dQ / G2
+                h21 = h22
+                p2 = p2 - dP2 / (self.hsteps)
+        DT = t1 - t2
+        min_dt = min(DT[:-1])
+        T12 = t1[-1]
+        S12 = prop.h_p(h12, self.P11, self.fluid1)["S"]
+        Q12 = prop.h_p(h12, self.P11, self.fluid1)["Q"]
+        S22 = prop.h_p(h22, p2, self.fluid2)["S"]
+        Q22 = prop.h_p(h22, p2, self.fluid2)["Q"]
+        self.streams.loc[self.stream12] = [T12, self.P11, h12, S12, Q12, self.G1, self.fluid1]
+        self.streams.loc[self.stream22] = [t2[0], p2, h22, S22, Q22, G2, self.fluid2]
+        self.blocks.loc['HEAT'] = [0, Q[-1], min_dt, t1, t2, Q]
         pass
 
 
@@ -194,5 +215,5 @@ class REG:
             self.streams.loc[self.stream22] = [t2[-1], p2, h22, S22, Q22, self.G2, self.fluid2]
             self.blocks.loc['REG'] = [0, Q[-1], min_dt, t1, t2, Q]
             return abs(self.dTreg - min_dt)
-        minimize_scalar(T22_sved, bounds=[self.T21, self.Tgas_out-self.dTheat])
+        minimize_scalar(T22_sved, bounds=[self.T21, self.Tgas_out-self.dTheat-0.5])
         pass
