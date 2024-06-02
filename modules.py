@@ -74,7 +74,7 @@ class HEAT:
             DT = t1 - t2
             min_dt = min(DT[:-1])
             return self.dTheat - min_dt
-        G2 = self.streams.loc[self.stream21, "G"]*0.2+root_scalar(G_sved, bracket=[10, 10000], xtol=10**-5).root*(1-0.2)
+        G2 = self.streams.loc[self.stream21, "G"]*0.4+root_scalar(G_sved, bracket=[10, 10000], xtol=10**-5).root*(1-0.4)
         p2 = self.P21
         t1 = np.zeros(self.hsteps + 1)
         t2 = np.zeros(self.hsteps + 1)

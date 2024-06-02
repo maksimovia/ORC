@@ -70,17 +70,16 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
                +'\t'+ str(dTreg)
                +'\t'+ str((streams.loc['TURB-REG', 'H'] - streams.loc['REG-COND', 'H']) / (streams.loc['TURB-REG', 'H'] -prop.t_p(streams.loc['PUMP-REG', 'T'], streams.loc['REG-COND', 'P'],streams.loc['TURB-REG', 'X'])['H'])))
 
-Tgas = 200
+Tgas = 204.6950062
 Xorc = "R236ea"
 Ppump = 6
 dTreg = 5
 dPreg = 10 * 10**-3
 
 if __name__ == '__main__':
-    for dPreg in np.linspace(0, 200 * 10**-3, 40):
-        for dTreg in np.linspace(0.1, 40, 40):
-            calculating = Process(target=cycle_calc, args=(Tgas, Xorc, Ppump, dTreg, dPreg))
-            calculating.start()
-            while len(active_children()) > 59:
-                sleep(2)
+    for Ppump in np.linspace(2, 7, 50):
+        calculating = Process(target=cycle_calc, args=(Tgas, Xorc, Ppump, dTreg, dPreg))
+        calculating.start()
+        while len(active_children()) > 59:
+            sleep(2)
     data.close()

@@ -55,14 +55,14 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
 
 Tgas = 204.6950062
 Xorc = "R236ea"
-Ppump = 4.1
-dTreg = 7
+Ppump = 2
+dTreg = 5
 dPreg = 10 * 10**-3
 
-cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+# cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
-# for Ppump in np.arange(2, 7, 0.5):
-#     cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+for Ppump in np.arange(2, 7, 0.1):
+    cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
 print(streams.loc[:, "T":"G"])
 print(blocks)
