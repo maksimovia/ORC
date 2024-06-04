@@ -46,23 +46,25 @@ def cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg):
         REG('TURB-REG', 'REG-COND', 'PUMP-REG', 'REG-HEAT', dTreg, hsteps, dPreg, dQreg, Tgas_out, dTheat, streams, blocks).calc()
         COND('REG-COND', 'COND-PUMP', streams, blocks).calc()
         balance = abs(blocks.loc['HEAT', "Q"]*dQheat + blocks.loc['PUMP', "N"] - blocks.loc['COND', "Q"] - blocks.loc['TURB', "N"] - (1-dQreg)*blocks.loc['REG', 'Q']) / blocks.loc['HEAT', "Q"]
-        print(balance)
+        # print(balance)
         if balance < 10**-6:
             break
     Nnet = blocks.loc['TURB', "N"]*KPDm*KPDe - blocks.loc['PUMP', "N"]/KPDm/KPDe
     KPDnet = Nnet / blocks.loc['HEAT', "Q"]
-    print(Tgas, Xorc, round(Ppump,5), round(Nnet,5), round(KPDnet,5), round(blocks.loc['HEAT', "dT"],5), streams.loc['HEAT-TURB', "Q"], streams.loc['TURB-REG', "Q"], balance)
+    print(Tgas, Xorc, round(Ppump,5), round(Nnet,5), round(KPDnet,5), round(blocks.loc['HEAT', "dT"],5), streams.loc['HEAT-TURB', "Q"],
+          streams.loc['TURB-REG', "Q"], balance, str((streams.loc['TURB-REG', 'H'] - streams.loc['REG-COND', 'H']) / (streams.loc['TURB-REG',
+        'H'] -prop.t_p(streams.loc['PUMP-REG', 'T'], streams.loc['REG-COND', 'P'],streams.loc['TURB-REG', 'X'])['H'])))
 
 Tgas = 204.6950062
 Xorc = "R236ea"
-Ppump = 2
+Ppump = 6
 dTreg = 5
 dPreg = 10 * 10**-3
 
-# cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
-for Ppump in np.arange(2, 7, 0.1):
-    cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
+# for Ppump in np.arange(2, 7, 0.1):
+#     cycle_calc(Tgas, Xorc, Ppump, dTreg, dPreg)
 
 print(streams.loc[:, "T":"G"])
-print(blocks)
+print(blocks.loc[:, "N":"dT"])

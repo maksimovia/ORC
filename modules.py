@@ -182,7 +182,7 @@ class REG:
         def T22_sved(T22):
             p2 = self.P21
             p1 = self.P11
-            H22 = prop.t_p(T22, self.P21, self.fluid2)["H"]
+            H22 = prop.t_p(T22, self.P21-self.dP, self.fluid2)["H"]
             step = (H22 - self.H21) / self.hsteps
             t1 = np.zeros(self.hsteps + 1)
             t2 = np.zeros(self.hsteps + 1)
